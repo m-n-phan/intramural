@@ -41,7 +41,7 @@ export function Analytics() {
     );
   }
 
-  const participationBysport = sports?.map((sport: any) => {
+  const participationBySport = sports?.map((sport: any) => {
     const sportTeams = teams?.filter((team: any) => team.sportId === sport.id) || [];
     const totalPlayers = sportTeams.length * 8; // Estimate 8 players per team
     return {

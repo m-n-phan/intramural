@@ -25,7 +25,10 @@ export function RoleManagement() {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['/api/users'],
-    queryFn: () => apiRequest('GET', '/api/users'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/users');
+      return Array.isArray(response) ? response : [];
+    },
   });
 
   const updateRoleMutation = useMutation({

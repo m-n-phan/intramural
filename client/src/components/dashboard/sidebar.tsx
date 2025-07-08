@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { USER_ROLES } from "@shared/schema";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 interface SidebarProps {
   activeView: DashboardView;

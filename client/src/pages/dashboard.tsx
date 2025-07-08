@@ -11,11 +11,20 @@ import { Standings } from "@/components/dashboard/standings";
 import { Payments } from "@/components/dashboard/payments";
 import { Analytics } from "@/components/dashboard/analytics";
 import { RoleManagement } from "@/components/dashboard/role-management";
+import { Settings } from "@/components/dashboard/settings";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Bell, Settings as SettingsIcon, User, LogOut } from "lucide-react";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 export default function Dashboard() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -62,6 +71,8 @@ export default function Dashboard() {
         return <Analytics />;
       case 'roles':
         return <RoleManagement />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Overview />;
     }
@@ -82,17 +93,34 @@ export default function Dashboard() {
               <Button variant="ghost" size="sm">
                 <Bell className="h-4 w-4" />
               </Button>
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profileImageUrl} />
-                  <AvatarFallback>
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden md:block text-foreground">
-                  {user?.firstName} {user?.lastName}
-                </span>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 p-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.profileImageUrl} />
+                      <AvatarFallback>
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:block text-foreground">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setActiveView('settings')}>
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

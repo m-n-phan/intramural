@@ -58,6 +58,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/auth/user', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+
+      const { firstName, lastName, email } = req.body;
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        email
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Sports routes
   app.get('/api/sports', async (req, res) => {
     try {
