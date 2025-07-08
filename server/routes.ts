@@ -208,6 +208,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team member routes
+  app.get('/api/teams/:id/members', async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  app.post('/api/teams/:id/members', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const member = await storage.addTeamMember({
+        teamId,
+        userId,
+        role: 'player',
+        joinedAt: new Date(),
+      });
+      
+      res.json(member);
+    } catch (error) {
+      console.error("Error adding team member:", error);
+      res.status(500).json({ message: "Failed to add team member" });
+    }
+  });
+
+  app.delete('/api/teams/:teamId/members/:userId', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = req.params.userId;
+      
+      await storage.removeTeamMember(teamId, userId);
+      res.json({ message: "Team member removed successfully" });
+    } catch (error) {
+      console.error("Error removing team member:", error);
+      res.status(500).json({ message: "Failed to remove team member" });
+    }
+  });
+
   // Games routes
   app.get('/api/games', async (req, res) => {
     try {
