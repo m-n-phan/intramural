@@ -1,0 +1,142 @@
+# Product Requirements Document (PRD) – **Intramural**
+
+*Last updated: 2025-07-08*
+
+---
+
+## 1. Overview
+
+Intramural is a web **and native mobile** platform that helps colleges and universities plan, run, and analyze intramural sports programs. It replaces spreadsheet-driven workflows and outdated portals with a modern, Notion‑style experience for admins, captains, players, and staff.
+
+## 2. Objectives & Success Metrics
+
+| Objective                   | KPI                                        | Target                  |
+| --------------------------- | ------------------------------------------ | ----------------------- |
+| Cut admin scheduling time   | Avg. time to publish full season           | ↓ 50 % vs. current tool |
+| Increase student engagement | Weekly active players / registered players | ≥ 60 %                  |
+| Reduce forfeits             | Forfeited games / total games              | ≤ 5 %                   |
+| Monetize reliably           | Payment success rate                       | ≥ 98 %                  |
+| Delight users               | Net Promoter Score                         | ≥ 50                    |
+| Drive mobile adoption       | Mobile MAU / total MAU                     | ≥ 70 %                  |
+
+## 3. Personas
+
+* **Campus Admin (primary)** – sets rules, seasons, fees; needs control and reporting.
+* **Team Captain** – registers teams, manages rosters, pays fees.
+* **Player** – joins teams, views schedules, tracks stats **primarily from mobile**.
+* **Referee / Staff** – assigned to games, records results via phones/tablets.
+* **Parents / Fans (read‑only)** – view public scores and standings.
+
+## 4. Core User Stories
+
+1. *As a Player, I can open the mobile app and see my next game, venue, and live score even with spotty campus Wi‑Fi.*
+2. *As Staff, I can enter live scores from courtside on my phone without losing data if I go offline.*
+3. *As an Admin, I can send push‑notification blasts to all captains about weather delays.*
+
+## 5. Functional Requirements
+
+### 5.1 Authentication & Profiles
+
+* SSO (Google + campus SAML) and email/password.
+* Universal session across web PWA and native mobile app.
+* Profile page with photo, class year, lifetime stats.
+
+### 5.2 Sports & Seasons
+
+* CRUD sports, seasons, divisions, skill levels.
+* Capacity rules: roster size, gender mix, eligibility checks.
+* Auto‑generated public registration links.
+
+### 5.3 Mobile‑Specific
+
+| Feature                | Detail                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| **Native Apps**        | iOS & Android built with **Expo + React Native**; distributed through App Store & Play Store.  |
+| **Offline Mode**       | Local cache (SQLite/AsyncStorage) for schedules, rosters, score entry; auto‑sync on reconnect. |
+| **Push Notifications** | Expo Notifications / FCM for schedule changes, messages, score updates.                        |
+| **Mobile Navigation**  | Bottom tab bar (Home, Schedule, Teams, Chat, Profile).                                         |
+| **Camera Access**      | Quick photo upload for game results & disputes.                                                |
+| **Deep Links**         | `intramural://game/{id}` opens directly in app.                                                |
+
+### 5.4 Payments & Waivers
+
+* Stripe Checkout for team and player fees (mobile‑optimised screens).
+* Coupon codes, refunds, partial payments.
+* PDF waiver e‑sign and S3 storage.
+
+## 6. Non‑Functional Requirements
+
+* **Performance:** first app load ≤ 2.5 s on 3 G; p95 API ≤ 200 ms.
+* **Accessibility:** WCAG 2.2 AA; native screen‑reader labels (VoiceOver, TalkBack).
+* **Security:** OWASP Mobile Top 10 mitigations; encrypted keystores.
+* **Uptime:** 99.5 % monthly API + push service.
+* **Mobile:** PWA with offline caching for score entry.
+
+## 7. UI / UX Principles & Guidelines
+
+### 7.1 Design Pillars
+
+1. **Modern & Sleek** – clean typography (Inter), generous whitespace, 8 px grid rhythm.
+2. **Delightful** – subtle micro‑interactions (200 ms ease‑out), emoji‑grade icons via Lucide, celebratory confetti when seasons end.
+3. **Focus & Clarity** – context‑aware sidebars, progressive disclosure; "one primary action" per screen.
+4. **Consistency** – single source‑of‑truth design tokens shared between web (CSS vars) and mobile (React Native StyleSheet).
+
+### 7.2 Visual Language
+
+| Token          | Light   | Dark    | Usage               |
+| -------------- | ------- | ------- | ------------------- |
+| `--bg`         | #FFFFFF | #1E1E1E | Page background     |
+| `--surface`    | #F7F7F7 | #2B2B2B | Cards, nav bars     |
+| `--accent`     | #2F69FF | #3B83FF | Primary CTAs, links |
+| `--border`     | #E0E0E0 | #3C3C3C | Dividers, inputs    |
+| `--text`       | #37352F | #E6E6E6 | Primary copy        |
+| `--text‑muted` | #787774 | #A0A0A0 | Secondary copy      |
+
+### 7.3 Layout Patterns
+
+* **Landing (`/`)** – marketing funnel, hero, feature grid, pricing strip, testimonials, FAQ.
+* **Dashboard (`/app/*`)** – two‑pane layout on desktop/tablet; stacked views with bottom tabs on mobile.
+* **Forms & Tables** – inline validation; sticky action bar with Save / Cancel.
+* **Dark Mode** – automatic via `prefers‑color‑scheme` + manual toggle in settings.
+
+### 7.4 Interaction & Motion
+
+* Buttons raise `shadow‑md` on hover (web) or tap‑down animation (mobile).
+* Drag‑and‑drop reordering for schedules; haptic feedback on mobile via `expo‑haptics`.
+* Live score updates animate with fade‑in tick.
+
+### 7.5 Branding Touches
+
+* Logo wordmark in bold Inter; accent‑color underline on hover.
+* Placeholder illustrations in duotone accent.
+
+## 8. Technical Architecture
+
+| Layer             | Tech choice                                          |
+| ----------------- | ---------------------------------------------------- |
+| Frontend – Web    | Next.js 14 (RSC), Tailwind, TanStack Query           |
+| Frontend – Mobile | **Expo SDK 51, React Native 0.73**, `expo‑router`    |
+| Real‑time         | Socket.IO (web) + `@socket.io/react‑native`          |
+| Backend           | NestJS, Prisma ORM, PostgreSQL (PlanetScale)         |
+| Auth              | Next‑Auth + SAML; Expo SecureStore for JWT on mobile |
+| Push              | Expo Notifications → FCM / APNS                      |
+| Files             | AWS S3                                               |
+| Caching / Queues  | Redis                                                |
+| Infrastructure    | Vercel (web) & Railway (API), Terraform IaC          |
+| CI / CD           | GitHub Actions → Vercel & EAS Build / Submit         |
+
+## 9. Testing Strategy
+
+| Layer             | Tool                         | Coverage Target            |
+| ----------------- | ---------------------------- | -------------------------- |
+| Unit – Web        | Vitest                       | ≥ 80 % lines               |
+| Unit – Mobile     | React Native Testing Library | critical helpers           |
+| Component         | Storybook + Testing Library  | core components            |
+| e2e – Web         | Cypress                      | full season lifecycle      |
+| e2e – Mobile      | Detox & Maestro              | critical flows             |
+| Visual Regression | Chromatic snapshots          | navbar, landing, dashboard |
+| Load & Perf       | k6                           | 10 k RPS                   |
+
+---
+
+*This PRD supersedes previous drafts; future edits should update this document directly.*
