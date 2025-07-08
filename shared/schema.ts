@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role", { length: 20 }).notNull().default("player"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -186,6 +187,16 @@ export const insertGameSchema = createInsertSchema(games).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+// Role constants
+export const USER_ROLES = {
+  ADMIN: 'admin',
+  CAPTAIN: 'captain', 
+  PLAYER: 'player',
+  REFEREE: 'referee'
+} as const;
+
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;

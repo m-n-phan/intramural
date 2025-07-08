@@ -10,11 +10,12 @@ import { Schedule } from "@/components/dashboard/schedule";
 import { Standings } from "@/components/dashboard/standings";
 import { Payments } from "@/components/dashboard/payments";
 import { Analytics } from "@/components/dashboard/analytics";
+import { RoleManagement } from "@/components/dashboard/role-management";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell } from "lucide-react";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles';
 
 export default function Dashboard() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -59,6 +60,8 @@ export default function Dashboard() {
         return <Payments />;
       case 'analytics':
         return <Analytics />;
+      case 'roles':
+        return <RoleManagement />;
       default:
         return <Overview />;
     }

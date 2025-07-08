@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertSportSchema, insertTeamSchema, insertGameSchema } from "@shared/schema";
+import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
+import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -26,6 +27,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Role management endpoints
+  app.put('/api/users/:id/role', requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      
+      if (!Object.values(USER_ROLES).includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      const user = await storage.updateUserRole(id, role);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  app.get('/api/users', requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
@@ -54,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/sports', isAuthenticated, async (req, res) => {
+  app.post('/api/sports', requireAdmin, async (req, res) => {
     try {
       const sportData = insertSportSchema.parse(req.body);
       const sport = await storage.createSport(sportData);
@@ -65,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/sports/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/sports/:id', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const sportData = insertSportSchema.partial().parse(req.body);
@@ -77,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/sports/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/sports/:id', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteSport(id);

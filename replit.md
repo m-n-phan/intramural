@@ -4,6 +4,8 @@
 
 This is a full-stack web application for managing intramural sports programs at colleges and universities. The platform helps administrators organize sports, manage teams, schedule games, and handle payments, while providing students with an easy way to participate in campus sports activities.
 
+The system now includes comprehensive role-based access control supporting administrators, team captains, referees, and players with appropriate permissions for each role.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -39,6 +41,11 @@ Preferred communication style: Simple, everyday language.
 - **Strategy**: Passport.js with OpenID Client strategy
 - **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
 - **User Management**: Automatic user creation/updates on login
+- **Role-Based Access Control**: Four user roles with specific permissions:
+  - **Admin**: Full system access, user management, sports creation
+  - **Captain**: Team management, player registration, team-specific features
+  - **Referee**: Game management, score updates, referee tools
+  - **Player**: Team participation, schedule viewing, game participation
 
 ### Sports Management
 - **Sports**: CRUD operations for different sports with configurable rules

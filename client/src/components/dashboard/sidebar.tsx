@@ -7,10 +7,13 @@ import {
   Calendar, 
   Award, 
   CreditCard, 
-  TrendingUp 
+  TrendingUp,
+  Shield
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { USER_ROLES } from "@shared/schema";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles';
 
 interface SidebarProps {
   activeView: DashboardView;
@@ -18,6 +21,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeView, setActiveView }: SidebarProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === USER_ROLES.ADMIN;
+  
   const navItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'sports', label: 'Sports & Seasons', icon: Trophy },
@@ -26,6 +32,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
     { id: 'standings', label: 'Standings', icon: Award },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    ...(isAdmin ? [{ id: 'roles', label: 'Role Management', icon: Shield }] : []),
   ];
 
   return (

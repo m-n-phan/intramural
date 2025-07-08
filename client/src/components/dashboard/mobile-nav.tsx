@@ -7,7 +7,7 @@ import {
   User 
 } from "lucide-react";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles';
 
 interface MobileNavProps {
   activeView: DashboardView;
