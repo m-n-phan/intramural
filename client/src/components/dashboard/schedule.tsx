@@ -611,16 +611,7 @@ export function Schedule() {
                     </FormItem>
                   )}
                 />
-                {selectedEditHomeTeam && (
-                  <div className="bg-muted p-3 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Division:</strong> {selectedEditHomeTeam.division}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Away team must be from the same division
-                    </p>
-                  </div>
-                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
