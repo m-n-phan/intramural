@@ -186,6 +186,36 @@ export function Schedule() {
   });
 
   const onSubmit = (data: any) => {
+    console.log('Form data:', data);
+    
+    // Validate required fields
+    if (!data.sportId || data.sportId === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a sport",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.homeTeamId || data.homeTeamId === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a home team",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.awayTeamId || data.awayTeamId === 0) {
+      toast({
+        title: "Validation Error", 
+        description: "Please select an away team",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Ensure all numeric fields are properly converted
     const submitData = {
       ...data,
@@ -194,6 +224,8 @@ export function Schedule() {
       awayTeamId: Number(data.awayTeamId),
       scheduledAt: data.scheduledAt, // String will be transformed to Date by Zod schema
     };
+    
+    console.log('Submit data:', submitData);
     createGameMutation.mutate(submitData);
   };
 
@@ -457,7 +489,7 @@ export function Schedule() {
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="0" disabled>
                                 No eligible teams available
                               </SelectItem>
                             )}
@@ -614,7 +646,7 @@ export function Schedule() {
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="0" disabled>
                                 No eligible teams available
                               </SelectItem>
                             )}
