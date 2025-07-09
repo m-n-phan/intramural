@@ -51,6 +51,67 @@ const universityConfigs: Record<string, SSOConfig> = {
       studentId: 'student_id'
     }
   },
+  'stanford-university': {
+    provider: 'saml',
+    clientId: 'stanford-intramural-app',
+    universityId: 'stanford-university',
+    universityName: 'Stanford University',
+    callbackURL: '/api/auth/callback/stanford-university',
+    entryPoint: 'https://login.stanford.edu/idp/profile/SAML2/Redirect/SSO',
+    cert: 'DEMO_CERT_PLACEHOLDER',
+    userAttributes: {
+      id: 'NameID',
+      email: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+      firstName: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+      lastName: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
+      studentId: 'http://schemas.stanford.edu/ws/2009/09/identity/claims/studentid'
+    }
+  },
+  'harvard-university': {
+    provider: 'google',
+    clientId: 'harvard-google-client-id',
+    clientSecret: 'harvard-google-client-secret',
+    domain: 'harvard.edu',
+    universityId: 'harvard-university',
+    universityName: 'Harvard University',
+    callbackURL: '/api/auth/callback/harvard-university',
+    userAttributes: {
+      id: 'id',
+      email: 'email',
+      firstName: 'given_name',
+      lastName: 'family_name'
+    }
+  },
+  'mit-university': {
+    provider: 'azure',
+    clientId: 'mit-azure-client-id',
+    clientSecret: 'mit-azure-client-secret',
+    domain: 'mit.edu',
+    universityId: 'mit-university',
+    universityName: 'MIT',
+    callbackURL: '/api/auth/callback/mit-university',
+    userAttributes: {
+      id: 'oid',
+      email: 'email',
+      firstName: 'given_name',
+      lastName: 'family_name'
+    }
+  },
+  'berkeley-university': {
+    provider: 'openid',
+    clientId: 'berkeley-openid-client',
+    universityId: 'berkeley-university',
+    universityName: 'UC Berkeley',
+    callbackURL: '/api/auth/callback/berkeley-university',
+    userAttributes: {
+      id: 'sub',
+      email: 'email',
+      firstName: 'given_name',
+      lastName: 'family_name',
+      department: 'department',
+      studentId: 'student_number'
+    }
+  },
   // Note: SAML configurations would be added when universities are onboarded
   // 'stanford-university': {
   //   provider: 'saml',
@@ -185,41 +246,49 @@ export async function setupEnterpriseAuth(app: Express) {
         break;
 
       case 'saml':
-        // SAML 2.0 (common for universities)
-        passport.use(`saml-${universityId}`, new SamlStrategy(
-          {
-            callbackUrl: `${getBaseUrl()}/api/auth/callback/${universityId}`,
-            entryPoint: config.entryPoint!,
-            issuer: `intramural-${universityId}`,
-            cert: config.cert!,
-            identifierFormat: null,
-            disableRequestedAuthnContext: true,
-            acceptedClockSkewMs: -1,
-            signatureAlgorithm: 'sha256'
-          },
-          async (profile: any, done: any) => {
-            const user = { profile, universityId };
-            await upsertUser(profile, universityId);
-            done(null, user);
-          }
-        ));
+        // SAML 2.0 (common for universities) - skip if no cert provided
+        if (config.cert && config.cert !== 'DEMO_CERT_PLACEHOLDER') {
+          passport.use(`saml-${universityId}`, new SamlStrategy(
+            {
+              callbackUrl: `${getBaseUrl()}/api/auth/callback/${universityId}`,
+              entryPoint: config.entryPoint!,
+              issuer: `intramural-${universityId}`,
+              cert: config.cert!,
+              identifierFormat: null,
+              disableRequestedAuthnContext: true,
+              acceptedClockSkewMs: -1,
+              signatureAlgorithm: 'sha256'
+            },
+            async (profile: any, done: any) => {
+              const user = { profile, universityId };
+              await upsertUser(profile, universityId);
+              done(null, user);
+            }
+          ));
+        } else {
+          console.warn(`SAML authentication not configured for ${universityId} - missing certificate`);
+        }
         break;
 
       case 'google':
-        // Google OAuth 2.0 (Google Workspace)
-        passport.use(`google-${universityId}`, new GoogleStrategy(
-          {
-            clientID: config.clientId,
-            clientSecret: config.clientSecret!,
-            callbackURL: `${getBaseUrl()}/api/auth/callback/${universityId}`,
-            hostedDomain: config.domain
-          },
-          async (accessToken: any, refreshToken: any, profile: any, done: any) => {
-            const user = { profile: profile._json, universityId };
-            await upsertUser(profile._json, universityId);
-            done(null, user);
-          }
-        ));
+        // Google OAuth 2.0 (Google Workspace) - skip if no real credentials
+        if (config.clientSecret && !config.clientSecret.includes('demo')) {
+          passport.use(`google-${universityId}`, new GoogleStrategy(
+            {
+              clientID: config.clientId,
+              clientSecret: config.clientSecret!,
+              callbackURL: `${getBaseUrl()}/api/auth/callback/${universityId}`,
+              hostedDomain: config.domain
+            },
+            async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+              const user = { profile: profile._json, universityId };
+              await upsertUser(profile._json, universityId);
+              done(null, user);
+            }
+          ));
+        } else {
+          console.warn(`Google OAuth not configured for ${universityId} - missing credentials`);
+        }
         break;
 
       case 'azure':
@@ -233,30 +302,52 @@ export async function setupEnterpriseAuth(app: Express) {
   for (const [universityId, config] of Object.entries(universityConfigs)) {
     const strategyName = `${config.provider}-${universityId}`;
     
-    // Login route
-    app.get(`/api/auth/login/${universityId}`, (req, res, next) => {
-      passport.authenticate(strategyName, {
-        scope: config.provider === 'openid' ? ['openid', 'email', 'profile'] : undefined
-      })(req, res, next);
-    });
+    // Only create routes for properly configured strategies
+    const isConfigured = config.provider === 'openid' || 
+                        (config.provider === 'saml' && config.cert && config.cert !== 'DEMO_CERT_PLACEHOLDER') ||
+                        (config.provider === 'google' && config.clientSecret && !config.clientSecret.includes('demo')) ||
+                        (config.provider === 'azure' && config.clientSecret && !config.clientSecret.includes('demo'));
+    
+    if (isConfigured) {
+      // Login route
+      app.get(`/api/auth/login/${universityId}`, (req, res, next) => {
+        passport.authenticate(strategyName, {
+          scope: config.provider === 'openid' ? ['openid', 'email', 'profile'] : undefined
+        })(req, res, next);
+      });
 
-    // Callback route
-    app.get(`/api/auth/callback/${universityId}`, (req, res, next) => {
-      passport.authenticate(strategyName, {
-        successRedirect: "/",
-        failureRedirect: `/login?error=auth_failed&university=${universityId}`,
-      })(req, res, next);
-    });
+      // Callback route
+      app.get(`/api/auth/callback/${universityId}`, (req, res, next) => {
+        passport.authenticate(strategyName, {
+          successRedirect: "/",
+          failureRedirect: `/login?error=auth_failed&university=${universityId}`,
+        })(req, res, next);
+      });
+    } else {
+      // Demo route for unconfigured universities
+      app.get(`/api/auth/login/${universityId}`, (req, res) => {
+        res.redirect(`/login?error=not_configured&university=${universityId}`);
+      });
+    }
   }
 
   // University selection route
   app.get('/api/auth/universities', (req, res) => {
-    const universities = Object.entries(universityConfigs).map(([id, config]) => ({
-      id,
-      name: config.universityName,
-      provider: config.provider,
-      loginUrl: `/api/auth/login/${id}`
-    }));
+    const universities = Object.entries(universityConfigs).map(([id, config]) => {
+      const isConfigured = config.provider === 'openid' || 
+                          (config.provider === 'saml' && config.cert && config.cert !== 'DEMO_CERT_PLACEHOLDER') ||
+                          (config.provider === 'google' && config.clientSecret && !config.clientSecret.includes('demo')) ||
+                          (config.provider === 'azure' && config.clientSecret && !config.clientSecret.includes('demo'));
+      
+      return {
+        id,
+        name: config.universityName,
+        provider: config.provider,
+        loginUrl: `/api/auth/login/${id}`,
+        configured: isConfigured,
+        status: isConfigured ? 'active' : 'demo'
+      };
+    });
     res.json(universities);
   });
 

@@ -21,6 +21,8 @@ interface University {
   name: string;
   provider: string;
   loginUrl: string;
+  configured: boolean;
+  status: 'active' | 'demo';
 }
 
 export default function UniversityLogin() {
@@ -125,9 +127,14 @@ export default function UniversityLogin() {
                       {getProviderIcon(university.provider)}
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                        {university.name}
-                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                          {university.name}
+                        </CardTitle>
+                        <Badge variant={university.configured ? "default" : "secondary"}>
+                          {university.status === 'active' ? 'Active' : 'Demo'}
+                        </Badge>
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {getProviderName(university.provider)}
                       </p>
