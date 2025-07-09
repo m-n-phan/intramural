@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Checkout from "@/pages/checkout";
 import Onboarding from "@/pages/onboarding";
+import UniversityLogin from "@/pages/university-login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/login" component={UniversityLogin} />
           <Route path="/checkout" component={Checkout} />
         </>
       ) : (

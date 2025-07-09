@@ -42,6 +42,9 @@ export const users = pgTable("users", {
   experience: varchar("experience"),
   availability: varchar("availability"),
   notifications: boolean("notifications").default(true),
+  universityId: varchar("university_id"),
+  department: varchar("department"),
+  studentId: varchar("student_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

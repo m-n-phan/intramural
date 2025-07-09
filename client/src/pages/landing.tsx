@@ -40,11 +40,11 @@ export default function Landing() {
               <ThemeToggle />
               <Button 
                 variant="ghost" 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => window.location.href = '/login'}
               >
                 Sign In
               </Button>
-              <Button onClick={() => window.location.href = '/api/login'}>
+              <Button onClick={() => window.location.href = '/login'}>
                 Get Started
               </Button>
             </div>
@@ -66,7 +66,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => window.location.href = '/login'}
                 className="bg-primary hover:bg-primary/90"
               >
                 Start Free Trial
@@ -201,7 +201,7 @@ export default function Landing() {
                     Mobile apps
                   </li>
                 </ul>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => window.location.href = '/login'}>
                   Get Started
                 </Button>
               </CardContent>
@@ -240,7 +240,7 @@ export default function Landing() {
                     Analytics dashboard
                   </li>
                 </ul>
-                <Button className="w-full bg-primary hover:bg-primary/90">
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => window.location.href = '/login'}>
                   Start Free Trial
                 </Button>
               </CardContent>
