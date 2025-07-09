@@ -332,6 +332,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/games/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteGame(id);
+      res.json({ message: "Game deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      res.status(500).json({ message: "Failed to delete game" });
+    }
+  });
+
   // Analytics routes
   app.get('/api/analytics/overview', isAuthenticated, async (req, res) => {
     try {
