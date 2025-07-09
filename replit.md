@@ -10,6 +10,17 @@ The system now includes comprehensive role-based access control supporting admin
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### July 9, 2025 - Complete User Onboarding Flow
+- ✅ Developed comprehensive user signup and onboarding experience
+- ✅ Created multi-step onboarding wizard with progress tracking
+- ✅ Added user interest selection, experience level, and availability preferences
+- ✅ Implemented automatic redirect for new users to onboarding flow
+- ✅ Added onboarding completion tracking in user schema
+- ✅ Created test users for development and testing purposes
+- ✅ Added GitHub repository setup documentation and deployment guides
+
 ## System Architecture
 
 ### Frontend Architecture
