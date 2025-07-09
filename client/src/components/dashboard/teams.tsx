@@ -6,16 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Users, Search, MoreVertical } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertTeamSchema, Team, Sport, User, TeamMember } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Team, Sport, User, TeamMember } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { TeamForm } from "./TeamForm";
 
 export function Teams() {
   const { toast } = useToast();
@@ -41,27 +38,16 @@ export function Teams() {
   });
 
   const { data: typedUsers } = useQuery<User[]>({
-    queryKey: ['/api/typedUsers'],
+    queryKey: ['/api/users'],
   });
 
-  // Filter teams based on search term and selected sport
-  const filteredTeams = teams?.filter((team) => {
-    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSport = selectedSport === "all" || team.sportId.toString() === selectedSport;
-    return matchesSearch && matchesSport;
-  });
-
-  const form = useForm<Omit<Team, "id">>({
-    resolver: zodResolver(insertTeamSchema),
-    defaultValues: {
-      name: "",
-      sportId: 0,
-      captainId: typedUser?.id || "",
-      gender: "co-ed",
-      division: "recreational",
-      status: "active",
-    },
-  });
+  const filteredTeams = useMemo(() => {
+    return teams?.filter((team) => {
+      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSport = selectedSport === "all" || team.sportId.toString() === selectedSport;
+      return matchesSearch && matchesSport;
+    });
+  }, [teams, searchTerm, selectedSport]);
 
   const createTeamMutation = useMutation({
     mutationFn: async (data: Omit<Team, 'id'>) => {
@@ -74,7 +60,6 @@ export function Teams() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
       setShowAddDialog(false);
-      form.reset();
     },
     onError: (error) => {
       toast({
@@ -86,7 +71,6 @@ export function Teams() {
   });
 
   const onSubmit = (data: Omit<Team, 'id'>) => {
-    // Ensure sportId is a number
     const submitData = {
       ...data,
       sportId: Number(data.sportId),
@@ -96,7 +80,6 @@ export function Teams() {
   };
 
   const handleViewTeam = (team: Team) => {
-    // Navigate to team detail view
     toast({
       title: "Team Details",
       description: `Viewing details for ${team.name}`,
@@ -149,20 +132,7 @@ export function Teams() {
   });
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 bg-muted rounded w-1/4 mb-4" />
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse">
-              <div className="h-4 bg-muted rounded w-full mb-2" />
-              <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-              <div className="h-4 bg-muted rounded w-1/2" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   return (
@@ -170,116 +140,24 @@ export function Teams() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-2">Teams</h2>
-          <p className="text-muted-foreground">
-            Manage team registrations and rosters
-          </p>
+          <p className="text-muted-foreground">Manage team registrations and rosters</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Team
-            </Button>
+            <Button><Plus className="h-4 w-4 mr-2" />Add Team</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Team</DialogTitle>
-              <DialogDescription>
-                Create a new team by providing team details and selecting a sport.
-              </DialogDescription>
+              <DialogDescription>Create a new team by providing team details and selecting a sport.</DialogDescription>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Thunder" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="sportId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sport</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() ?? ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a sport" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.isArray(sports) && sports.map((sport) => (
-                            <SelectItem key={sport.id} value={sport.id.toString()}>
-                              {sport.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="men">Men's</SelectItem>
-                          <SelectItem value="women">Women's</SelectItem>
-                          <SelectItem value="co-ed">Co-ed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="division"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Division</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select division" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="recreational">Recreational</SelectItem>
-                          <SelectItem value="competitive">Competitive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createTeamMutation.isPending}>
-                    {createTeamMutation.isPending ? "Creating..." : "Create Team"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+            <TeamForm 
+              onSubmit={onSubmit}
+              isPending={createTeamMutation.isPending}
+              sports={sports}
+              onCancel={() => setShowAddDialog(false)}
+              submitButtonText="Create Team"
+            />
           </DialogContent>
         </Dialog>
       </div>
