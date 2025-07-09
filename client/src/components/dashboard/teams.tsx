@@ -57,6 +57,7 @@ export function Teams() {
       name: "",
       sportId: 0,
       captainId: user?.id || "",
+      gender: "co-ed",
       division: "recreational",
       status: "active",
     },
@@ -228,6 +229,28 @@ export function Teams() {
                 />
                 <FormField
                   control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="men">Men's</SelectItem>
+                          <SelectItem value="women">Women's</SelectItem>
+                          <SelectItem value="co-ed">Co-ed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="division"
                   render={({ field }) => (
                     <FormItem>
@@ -299,6 +322,7 @@ export function Teams() {
                   <tr className="border-b">
                     <th className="text-left py-3 px-6 font-medium text-muted-foreground">Team</th>
                     <th className="text-left py-3 px-6 font-medium text-muted-foreground">Sport</th>
+                    <th className="text-left py-3 px-6 font-medium text-muted-foreground">Gender</th>
                     <th className="text-left py-3 px-6 font-medium text-muted-foreground">Division</th>
                     <th className="text-left py-3 px-6 font-medium text-muted-foreground">Players</th>
                     <th className="text-left py-3 px-6 font-medium text-muted-foreground">Record</th>
@@ -325,6 +349,11 @@ export function Teams() {
                       <td className="py-4 px-6">
                         <Badge variant="outline">
                           {sports?.find((s: any) => s.id === team.sportId)?.name || 'Unknown'}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6">
+                        <Badge variant="secondary">
+                          {team.gender === 'men' ? "Men's" : team.gender === 'women' ? "Women's" : "Co-ed"}
                         </Badge>
                       </td>
                       <td className="py-4 px-6">

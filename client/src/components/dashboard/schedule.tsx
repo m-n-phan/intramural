@@ -44,6 +44,7 @@ export function Schedule() {
       sportId: 0,
       homeTeamId: 0,
       awayTeamId: 0,
+      gender: "co-ed",
       scheduledAt: "",
       venue: "",
       status: "scheduled",
@@ -56,6 +57,7 @@ export function Schedule() {
       sportId: 0,
       homeTeamId: 0,
       awayTeamId: 0,
+      gender: "co-ed",
       scheduledAt: "",
       venue: "",
       status: "scheduled",
@@ -197,6 +199,7 @@ export function Schedule() {
       sportId: game.sportId,
       homeTeamId: game.homeTeamId,
       awayTeamId: game.awayTeamId,
+      gender: game.gender,
       scheduledAt: formattedDate,
       venue: game.venue,
       status: game.status,
@@ -331,6 +334,28 @@ export function Schedule() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="men">Men's</SelectItem>
+                          <SelectItem value="women">Women's</SelectItem>
+                          <SelectItem value="co-ed">Co-ed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -449,6 +474,28 @@ export function Schedule() {
                               {sport.name}
                             </SelectItem>
                           ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="men">Men's</SelectItem>
+                          <SelectItem value="women">Women's</SelectItem>
+                          <SelectItem value="co-ed">Co-ed</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -627,8 +674,11 @@ export function Schedule() {
                               <div className="font-medium text-foreground">
                                 {teams?.find((t: any) => t.id === game.homeTeamId)?.name || 'Home Team'} vs {teams?.find((t: any) => t.id === game.awayTeamId)?.name || 'Away Team'}
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {game.venue}
+                              <div className="text-sm text-muted-foreground flex items-center space-x-2">
+                                <span>{game.venue}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {game.gender === 'men' ? "Men's" : game.gender === 'women' ? "Women's" : "Co-ed"}
+                                </Badge>
                               </div>
                             </div>
                           </div>

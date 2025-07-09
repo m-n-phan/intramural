@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertSportSchema } from "@shared/schema";
@@ -54,6 +55,7 @@ export function Sports() {
     defaultValues: {
       name: "",
       description: "",
+      gender: "co-ed",
       maxTeams: 16,
       maxPlayersPerTeam: 12,
       minPlayersPerTeam: 6,
@@ -159,6 +161,28 @@ export function Sports() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="men">Men's</SelectItem>
+                          <SelectItem value="women">Women's</SelectItem>
+                          <SelectItem value="co-ed">Co-ed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -249,6 +273,12 @@ export function Sports() {
                   </Button>
                 </div>
                 <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Gender</span>
+                    <Badge variant="outline">
+                      {sport.gender === 'men' ? "Men's" : sport.gender === 'women' ? "Women's" : "Co-ed"}
+                    </Badge>
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Max Teams</span>
                     <span className="text-foreground font-medium">{sport.maxTeams}</span>

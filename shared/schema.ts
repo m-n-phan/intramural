@@ -46,6 +46,7 @@ export const sports = pgTable("sports", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
+  gender: varchar("gender", { length: 20 }).default("co-ed").notNull(), // men, women, co-ed
   maxTeams: integer("max_teams"),
   maxPlayersPerTeam: integer("max_players_per_team"),
   minPlayersPerTeam: integer("min_players_per_team"),
@@ -64,6 +65,7 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).notNull(),
   sportId: integer("sport_id").references(() => sports.id).notNull(),
   captainId: varchar("captain_id").references(() => users.id).notNull(),
+  gender: varchar("gender", { length: 20 }).default("co-ed").notNull(), // men, women, co-ed
   division: varchar("division", { length: 50 }),
   status: varchar("status", { length: 20 }).default("active"), // active, pending, disbanded
   wins: integer("wins").default(0),
@@ -91,6 +93,7 @@ export const games = pgTable("games", {
   sportId: integer("sport_id").references(() => sports.id).notNull(),
   homeTeamId: integer("home_team_id").references(() => teams.id).notNull(),
   awayTeamId: integer("away_team_id").references(() => teams.id).notNull(),
+  gender: varchar("gender", { length: 20 }).default("co-ed").notNull(), // men, women, co-ed
   scheduledAt: timestamp("scheduled_at").notNull(),
   venue: varchar("venue", { length: 100 }),
   homeScore: integer("home_score"),
