@@ -17,11 +17,14 @@ function Router() {
 
   return (
     <Switch>
+      {/* Always accessible routes */}
+      <Route path="/login" component={UniversityLogin} />
+      <Route path="/checkout" component={Checkout} />
+      
+      {/* Conditional routes based on auth state */}
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/login" component={UniversityLogin} />
-          <Route path="/checkout" component={Checkout} />
         </>
       ) : (
         <>
@@ -29,7 +32,6 @@ function Router() {
           {/* Redirect new users to onboarding */}
           <Route path="/" component={user?.onboardingCompleted ? Dashboard : Onboarding} />
           <Route path="/dashboard" component={user?.onboardingCompleted ? Dashboard : Onboarding} />
-          <Route path="/checkout" component={Checkout} />
         </>
       )}
       <Route component={NotFound} />
