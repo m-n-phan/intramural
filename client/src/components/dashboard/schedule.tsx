@@ -46,6 +46,7 @@ export function Schedule() {
       homeTeamId: 0,
       awayTeamId: 0,
       gender: "co-ed",
+      division: "recreational",
       scheduledAt: "",
       venue: "",
       status: "scheduled",
@@ -59,6 +60,7 @@ export function Schedule() {
       homeTeamId: 0,
       awayTeamId: 0,
       gender: "co-ed",
+      division: "recreational",
       scheduledAt: "",
       venue: "",
       status: "scheduled",
@@ -85,20 +87,18 @@ export function Schedule() {
   // Watch form values for team filtering
   const watchedSportId = form.watch("sportId");
   const watchedGender = form.watch("gender");
+  const watchedDivision = form.watch("division");
   const watchedHomeTeamId = form.watch("homeTeamId");
   
   // Watch edit form values for team filtering
   const watchedEditSportId = editForm.watch("sportId");
   const watchedEditGender = editForm.watch("gender");
+  const watchedEditDivision = editForm.watch("division");
   const watchedEditHomeTeamId = editForm.watch("homeTeamId");
   
-  // Get home team to determine division
-  const selectedHomeTeam = teams?.find((team: any) => team.id === watchedHomeTeamId);
-  const selectedDivision = selectedHomeTeam?.division;
-  
-  // Get edit home team to determine division
-  const selectedEditHomeTeam = teams?.find((team: any) => team.id === watchedEditHomeTeamId);
-  const selectedEditDivision = selectedEditHomeTeam?.division;
+  // Use the division selected by the user in the form
+  const selectedDivision = watchedDivision;
+  const selectedEditDivision = watchedEditDivision;
 
   // Clear away team when home team changes to ensure proper filtering
   useEffect(() => {
@@ -470,7 +470,6 @@ export function Schedule() {
                           <SelectContent>
                             <SelectItem value="recreational">Recreational</SelectItem>
                             <SelectItem value="competitive">Competitive</SelectItem>
-                            <SelectItem value="elite">Elite</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -651,7 +650,6 @@ export function Schedule() {
                           <SelectContent>
                             <SelectItem value="recreational">Recreational</SelectItem>
                             <SelectItem value="competitive">Competitive</SelectItem>
-                            <SelectItem value="elite">Elite</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
