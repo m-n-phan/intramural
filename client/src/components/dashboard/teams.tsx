@@ -55,7 +55,7 @@ export function Teams() {
     resolver: zodResolver(insertTeamSchema),
     defaultValues: {
       name: "",
-      sportId: undefined,
+      sportId: 0,
       captainId: user?.id || "",
       division: "recreational",
       status: "active",
@@ -85,11 +85,13 @@ export function Teams() {
   });
 
   const onSubmit = (data: any) => {
-    createTeamMutation.mutate({
+    // Ensure sportId is a number
+    const submitData = {
       ...data,
-      sportId: parseInt(data.sportId),
+      sportId: Number(data.sportId),
       captainId: user?.id,
-    });
+    };
+    createTeamMutation.mutate(submitData);
   };
 
   const handleViewTeam = (team: any) => {
@@ -203,7 +205,7 @@ export function Teams() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sport</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                      <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a sport" />
