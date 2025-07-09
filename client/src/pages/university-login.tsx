@@ -134,6 +134,11 @@ export default function UniversityLogin() {
                         <Badge variant={university.configured ? "default" : "secondary"}>
                           {university.status === 'active' ? 'Active' : 'Demo'}
                         </Badge>
+                        {!university.configured && (
+                          <Badge variant="outline" className="ml-2">
+                            Config Required
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {getProviderName(university.provider)}
@@ -145,7 +150,10 @@ export default function UniversityLogin() {
                 <CardContent className="pt-0">
                   <Button 
                     className="w-full" 
-                    onClick={() => window.location.href = university.loginUrl}
+                    onClick={() => {
+                      console.log('Attempting to sign in with:', university.name);
+                      window.location.href = university.loginUrl;
+                    }}
                   >
                     Sign In
                   </Button>

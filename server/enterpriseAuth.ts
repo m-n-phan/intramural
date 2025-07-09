@@ -197,20 +197,25 @@ export function getSession() {
 }
 
 async function upsertUser(userProfile: any, universityId: string) {
-  const config = universityConfigs[universityId];
-  const userData = {
-    id: userProfile[config.userAttributes.id],
-    email: userProfile[config.userAttributes.email],
-    firstName: userProfile[config.userAttributes.firstName],
-    lastName: userProfile[config.userAttributes.lastName],
-    universityId: universityId,
-    department: userProfile[config.userAttributes.department],
-    studentId: userProfile[config.userAttributes.studentId],
-    // Default role based on email domain or attributes
-    role: userProfile[config.userAttributes.role] || 'player'
-  };
-  
-  await storage.upsertUser(userData);
+  try {
+    const config = universityConfigs[universityId];
+    const userData = {
+      id: userProfile[config.userAttributes.id],
+      email: userProfile[config.userAttributes.email],
+      firstName: userProfile[config.userAttributes.firstName],
+      lastName: userProfile[config.userAttributes.lastName],
+      universityId: universityId,
+      department: userProfile[config.userAttributes.department],
+      studentId: userProfile[config.userAttributes.studentId],
+      // Default role based on email domain or attributes
+      role: userProfile[config.userAttributes.role] || 'player'
+    };
+    
+    await storage.upsertUser(userData);
+  } catch (error) {
+    console.error('Error upserting user:', error);
+    throw error;
+  }
 }
 
 export async function setupEnterpriseAuth(app: Express) {
@@ -219,8 +224,13 @@ export async function setupEnterpriseAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  passport.serializeUser((user: any, cb) => cb(null, user));
-  passport.deserializeUser((user: any, cb) => cb(null, user));
+  passport.serializeUser((user: any, done) => {
+    done(null, user);
+  });
+  
+  passport.deserializeUser((user: any, done) => {
+    done(null, user);
+  });
 
   // Setup authentication strategies for each university
   for (const [universityId, config] of Object.entries(universityConfigs)) {
@@ -238,9 +248,14 @@ export async function setupEnterpriseAuth(app: Express) {
             callbackURL: `${getBaseUrl()}/api/auth/callback/${universityId}`,
           },
           async (tokens: any, verified: any) => {
-            const user = { profile: tokens.claims(), universityId };
-            await upsertUser(user.profile, universityId);
-            verified(null, user);
+            try {
+              const user = { profile: tokens.claims(), universityId };
+              await upsertUser(user.profile, universityId);
+              verified(null, user);
+            } catch (error) {
+              console.error('OpenID authentication error:', error);
+              verified(error, null);
+            }
           }
         ));
         break;
