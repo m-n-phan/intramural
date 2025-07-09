@@ -24,6 +24,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, Settings as SettingsIcon, User, LogOut } from "lucide-react";
 
+// Function to determine the current season based on month and year
+const getCurrentSeason = () => {
+  const now = new Date();
+  const month = now.getMonth(); // 0-based (0 = January, 11 = December)
+  const year = now.getFullYear();
+  
+  // Academic year typically runs from August to July
+  // Fall: August, September, October, November
+  // Winter: December, January, February
+  // Spring: March, April, May, June, July
+  
+  if (month >= 7 && month <= 10) { // August to November
+    return `Fall ${year}`;
+  } else if (month >= 11 || month <= 1) { // December to February
+    // Winter spans across calendar years
+    const academicYear = month >= 11 ? year + 1 : year;
+    return `Winter ${academicYear}`;
+  } else { // March to July
+    return `Spring ${year}`;
+  }
+};
+
 type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 export default function Dashboard() {
@@ -87,7 +109,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-bold text-primary">Intramural</h1>
               <div className="hidden md:block h-6 w-px bg-border" />
-              <span className="hidden md:block text-muted-foreground">Spring 2024</span>
+              <span className="hidden md:block text-muted-foreground">{getCurrentSeason()}</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm">

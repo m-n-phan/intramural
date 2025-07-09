@@ -22,7 +22,7 @@ export function Schedule() {
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 1)); // July 2025
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedGame, setSelectedGame] = useState<any>(null);
 
@@ -153,10 +153,18 @@ export function Schedule() {
   };
 
   const handlePreviousMonth = () => {
+    const minDate = new Date(2025, 6, 1); // July 1, 2025
+    
     if (viewMode === 'week') {
-      setCurrentDate(prev => new Date(prev.getTime() - 7 * 24 * 60 * 60 * 1000));
+      const newDate = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+      if (newDate >= minDate) {
+        setCurrentDate(newDate);
+      }
     } else {
-      setCurrentDate(subMonths(currentDate, 1));
+      const newDate = subMonths(currentDate, 1);
+      if (newDate >= minDate) {
+        setCurrentDate(newDate);
+      }
     }
   };
 

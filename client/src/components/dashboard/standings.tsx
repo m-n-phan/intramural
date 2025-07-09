@@ -3,6 +3,28 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy, Award, Medal } from "lucide-react";
 
+// Function to determine the current season based on month and year
+const getCurrentSeason = () => {
+  const now = new Date();
+  const month = now.getMonth(); // 0-based (0 = January, 11 = December)
+  const year = now.getFullYear();
+  
+  // Academic year typically runs from August to July
+  // Fall: August, September, October, November
+  // Winter: December, January, February
+  // Spring: March, April, May, June, July
+  
+  if (month >= 7 && month <= 10) { // August to November
+    return `Fall ${year}`;
+  } else if (month >= 11 || month <= 1) { // December to February
+    // Winter spans across calendar years
+    const academicYear = month >= 11 ? year + 1 : year;
+    return `Winter ${academicYear}`;
+  } else { // March to July
+    return `Spring ${year}`;
+  }
+};
+
 export function Standings() {
   const { data: sports, isLoading: sportsLoading } = useQuery({
     queryKey: ['/api/sports'],
@@ -85,7 +107,7 @@ export function Standings() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Trophy className="h-5 w-5 mr-2" />
-                  {sport.name} - Spring 2024
+                  {sport.name} - {getCurrentSeason()}
                 </CardTitle>
               </CardHeader>
               <CardContent>
