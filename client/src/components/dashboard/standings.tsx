@@ -12,7 +12,8 @@ const getCurrentSeason = () => {
   // Academic year typically runs from August to July
   // Fall: August, September, October, November
   // Winter: December, January, February
-  // Spring: March, April, May, June, July
+  // Spring: March, April
+  // Summer: May, June, July
   
   if (month >= 7 && month <= 10) { // August to November
     return `Fall ${year}`;
@@ -20,8 +21,10 @@ const getCurrentSeason = () => {
     // Winter spans across calendar years
     const academicYear = month >= 11 ? year + 1 : year;
     return `Winter ${academicYear}`;
-  } else { // March to July
+  } else if (month >= 2 && month <= 3) { // March to April
     return `Spring ${year}`;
+  } else { // May to July
+    return `Summer ${year}`;
   }
 };
 
