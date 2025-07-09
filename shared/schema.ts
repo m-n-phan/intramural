@@ -186,6 +186,8 @@ export const insertGameSchema = createInsertSchema(games).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  scheduledAt: z.string().transform((val) => new Date(val)),
 });
 
 // Role constants

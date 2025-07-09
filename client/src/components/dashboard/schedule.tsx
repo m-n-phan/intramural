@@ -76,7 +76,7 @@ export function Schedule() {
       sportId: Number(data.sportId),
       homeTeamId: Number(data.homeTeamId),
       awayTeamId: Number(data.awayTeamId),
-      scheduledAt: new Date(data.scheduledAt).toISOString(),
+      scheduledAt: data.scheduledAt, // String will be transformed to Date by Zod schema
     };
     createGameMutation.mutate(submitData);
   };
