@@ -24,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Enterprise SSO (SAML, OAuth 2.0, OpenID Connect) with university systems
+- **Authentication**: Replit Auth (OpenID Connect)
 - **Payment Processing**: Stripe integration
 - **Session Management**: Express sessions with PostgreSQL storage
 
@@ -37,12 +37,10 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Authentication System
-- **Enterprise SSO**: SAML 2.0, OAuth 2.0, and OpenID Connect support
-- **University Integration**: Direct integration with university authentication systems
-- **Supported Providers**: Active Directory, LDAP, Google Workspace, Microsoft Azure AD, Okta, Auth0
-- **Development Mode**: Replit Auth for development and testing
+- **Provider**: Replit Auth using OpenID Connect
+- **Strategy**: Passport.js with OpenID Client strategy
 - **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
-- **User Management**: Automatic user creation/updates on login with university data sync
+- **User Management**: Automatic user creation/updates on login
 - **Role-Based Access Control**: Four user roles with specific permissions:
   - **Admin**: Full system access, user management, sports creation
   - **Captain**: Team management, player registration, team-specific features
@@ -66,7 +64,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Flow
 
-1. **User Authentication**: Users authenticate via university SSO systems, creating/updating user records with university data
+1. **User Authentication**: Users authenticate via Replit Auth, creating/updating user records in PostgreSQL
 2. **Data Fetching**: Client uses TanStack Query to fetch data from Express API routes
 3. **State Management**: Server state managed by TanStack Query, local state by React hooks
 4. **Database Operations**: Express routes use Drizzle ORM to interact with PostgreSQL
@@ -76,7 +74,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Infrastructure
 - **Database**: Neon PostgreSQL (serverless)
-- **Authentication**: University SSO providers (production), Replit Auth (development)
+- **Authentication**: Replit Auth service
 - **Payments**: Stripe payment processing
 - **Development**: Replit development environment
 

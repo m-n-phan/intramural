@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupEnterpriseAuth, isAuthenticated } from "./enterpriseAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
 import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { z } from "zod";
@@ -16,22 +16,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupEnterpriseAuth(app);
+  await setupAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Handle both enterprise auth and regular auth user structures
-      const userId = req.user?.profile?.sub || req.user?.claims?.sub;
-      if (!userId) {
-        return res.status(401).json({ message: "User ID not found" });
-      }
-      
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -42,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Onboarding routes
   app.post('/api/onboarding/complete', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.profile?.sub || req.user?.claims?.sub;
+      const userId = req.user.claims.sub;
       const onboardingData = req.body;
       
       // Update user with onboarding completion
@@ -91,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/auth/user', isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any)?.profile?.sub || (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
