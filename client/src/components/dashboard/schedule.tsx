@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { format, addMonths, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useEffect } from "react";
 
 export function Schedule() {
   const { toast } = useToast();
@@ -37,6 +38,61 @@ export function Schedule() {
   const { data: sports } = useQuery({
     queryKey: ['/api/sports'],
   });
+
+  // Function to get eligible teams based on selected sport, gender, and division
+  const getEligibleTeams = (selectedSportId: number, selectedGender: string, selectedDivision?: string) => {
+    if (!teams || !selectedSportId || !selectedGender) return [];
+    
+    return teams.filter((team: any) => 
+      team.sportId === selectedSportId && 
+      team.gender === selectedGender &&
+      (!selectedDivision || team.division === selectedDivision)
+    );
+  };
+
+  // Function to get eligible away teams (excluding home team)
+  const getEligibleAwayTeams = (selectedSportId: number, selectedGender: string, homeTeamId: number, selectedDivision?: string) => {
+    const eligibleTeams = getEligibleTeams(selectedSportId, selectedGender, selectedDivision);
+    return eligibleTeams.filter((team: any) => team.id !== homeTeamId);
+  };
+
+  // Watch form values for team filtering
+  const watchedSportId = form.watch("sportId");
+  const watchedGender = form.watch("gender");
+  const watchedHomeTeamId = form.watch("homeTeamId");
+  
+  // Watch edit form values for team filtering
+  const watchedEditSportId = editForm.watch("sportId");
+  const watchedEditGender = editForm.watch("gender");
+  const watchedEditHomeTeamId = editForm.watch("homeTeamId");
+  
+  // Get home team to determine division
+  const selectedHomeTeam = teams?.find((team: any) => team.id === watchedHomeTeamId);
+  const selectedDivision = selectedHomeTeam?.division;
+  
+  // Get edit home team to determine division
+  const selectedEditHomeTeam = teams?.find((team: any) => team.id === watchedEditHomeTeamId);
+  const selectedEditDivision = selectedEditHomeTeam?.division;
+
+  // Clear away team when home team changes to ensure proper filtering
+  useEffect(() => {
+    if (watchedHomeTeamId && form.getValues("awayTeamId")) {
+      const awayTeam = teams?.find((team: any) => team.id === form.getValues("awayTeamId"));
+      if (awayTeam && (awayTeam.division !== selectedDivision || awayTeam.gender !== watchedGender)) {
+        form.setValue("awayTeamId", 0);
+      }
+    }
+  }, [watchedHomeTeamId, watchedGender, selectedDivision]);
+
+  // Clear away team when home team changes in edit form
+  useEffect(() => {
+    if (watchedEditHomeTeamId && editForm.getValues("awayTeamId")) {
+      const awayTeam = teams?.find((team: any) => team.id === editForm.getValues("awayTeamId"));
+      if (awayTeam && (awayTeam.division !== selectedEditDivision || awayTeam.gender !== watchedEditGender)) {
+        editForm.setValue("awayTeamId", 0);
+      }
+    }
+  }, [watchedEditHomeTeamId, watchedEditGender, selectedEditDivision]);
 
   const form = useForm({
     resolver: zodResolver(insertGameSchema),
@@ -79,7 +135,7 @@ export function Schedule() {
     },
     onError: (error) => {
       toast({
-        title: "Error",
+        title: "Scheduling Error",
         description: error.message || "Failed to schedule game",
         variant: "destructive",
       });
@@ -370,9 +426,9 @@ export function Schedule() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {teams?.map((team: any) => (
+                            {getEligibleTeams(watchedSportId, watchedGender).map((team: any) => (
                               <SelectItem key={team.id} value={team.id.toString()}>
-                                {team.name}
+                                {team.name} ({team.division})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -394,14 +450,25 @@ export function Schedule() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {teams?.map((team: any) => (
-                              <SelectItem key={team.id} value={team.id.toString()}>
-                                {team.name}
+                            {getEligibleAwayTeams(watchedSportId, watchedGender, watchedHomeTeamId, selectedDivision).length > 0 ? (
+                              getEligibleAwayTeams(watchedSportId, watchedGender, watchedHomeTeamId, selectedDivision).map((team: any) => (
+                                <SelectItem key={team.id} value={team.id.toString()}>
+                                  {team.name} ({team.division})
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="" disabled>
+                                No eligible teams available
                               </SelectItem>
-                            ))}
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
+                        {getEligibleAwayTeams(watchedSportId, watchedGender, watchedHomeTeamId, selectedDivision).length === 0 && watchedHomeTeamId > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Only teams from the same division and gender category can play against each other.
+                          </p>
+                        )}
                       </FormItem>
                     )}
                   />
@@ -516,9 +583,9 @@ export function Schedule() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {teams?.map((team: any) => (
+                            {getEligibleTeams(watchedEditSportId, watchedEditGender).map((team: any) => (
                               <SelectItem key={team.id} value={team.id.toString()}>
-                                {team.name}
+                                {team.name} ({team.division})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -540,14 +607,25 @@ export function Schedule() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {teams?.map((team: any) => (
-                              <SelectItem key={team.id} value={team.id.toString()}>
-                                {team.name}
+                            {getEligibleAwayTeams(watchedEditSportId, watchedEditGender, watchedEditHomeTeamId, selectedEditDivision).length > 0 ? (
+                              getEligibleAwayTeams(watchedEditSportId, watchedEditGender, watchedEditHomeTeamId, selectedEditDivision).map((team: any) => (
+                                <SelectItem key={team.id} value={team.id.toString()}>
+                                  {team.name} ({team.division})
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="" disabled>
+                                No eligible teams available
                               </SelectItem>
-                            ))}
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
+                        {getEligibleAwayTeams(watchedEditSportId, watchedEditGender, watchedEditHomeTeamId, selectedEditDivision).length === 0 && watchedEditHomeTeamId > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Only teams from the same division and gender category can play against each other.
+                          </p>
+                        )}
                       </FormItem>
                     )}
                   />

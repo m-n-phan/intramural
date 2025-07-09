@@ -301,6 +301,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/games', isAuthenticated, async (req, res) => {
     try {
       const gameData = insertGameSchema.parse(req.body);
+      
+      // Validate that both teams exist and have the same division and gender
+      const homeTeam = await storage.getTeam(gameData.homeTeamId);
+      const awayTeam = await storage.getTeam(gameData.awayTeamId);
+      
+      if (!homeTeam || !awayTeam) {
+        return res.status(400).json({ message: "One or both teams not found" });
+      }
+      
+      // Validate same division
+      if (homeTeam.division !== awayTeam.division) {
+        return res.status(400).json({ 
+          message: "Teams must be in the same division to play each other" 
+        });
+      }
+      
+      // Validate same gender
+      if (homeTeam.gender !== awayTeam.gender) {
+        return res.status(400).json({ 
+          message: "Teams must have the same gender category to play each other" 
+        });
+      }
+      
+      // Validate same sport
+      if (homeTeam.sportId !== awayTeam.sportId) {
+        return res.status(400).json({ 
+          message: "Teams must be in the same sport to play each other" 
+        });
+      }
+      
       const game = await storage.createGame(gameData);
       res.json(game);
     } catch (error) {
@@ -313,6 +343,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const gameData = insertGameSchema.partial().parse(req.body);
+      
+      // If teams are being updated, validate they have the same division and gender
+      if (gameData.homeTeamId !== undefined && gameData.awayTeamId !== undefined) {
+        const homeTeam = await storage.getTeam(gameData.homeTeamId);
+        const awayTeam = await storage.getTeam(gameData.awayTeamId);
+        
+        if (!homeTeam || !awayTeam) {
+          return res.status(400).json({ message: "One or both teams not found" });
+        }
+        
+        // Validate same division
+        if (homeTeam.division !== awayTeam.division) {
+          return res.status(400).json({ 
+            message: "Teams must be in the same division to play each other" 
+          });
+        }
+        
+        // Validate same gender
+        if (homeTeam.gender !== awayTeam.gender) {
+          return res.status(400).json({ 
+            message: "Teams must have the same gender category to play each other" 
+          });
+        }
+        
+        // Validate same sport
+        if (homeTeam.sportId !== awayTeam.sportId) {
+          return res.status(400).json({ 
+            message: "Teams must be in the same sport to play each other" 
+          });
+        }
+      }
+      
       const game = await storage.updateGame(id, gameData);
       
       // Broadcast score update via WebSocket
