@@ -30,6 +30,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding routes
+  app.post('/api/onboarding/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const onboardingData = req.body;
+      
+      // Update user with onboarding completion
+      await storage.updateUser(userId, {
+        onboardingCompleted: true,
+        interests: onboardingData.interests,
+        experience: onboardingData.experience,
+        availability: onboardingData.availability,
+        notifications: onboardingData.notifications
+      });
+      
+      res.json({ success: true, message: "Onboarding completed successfully" });
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
   // Role management endpoints
   app.put('/api/users/:id/role', requireAdmin, async (req, res) => {
     try {

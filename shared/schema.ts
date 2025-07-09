@@ -37,6 +37,11 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 20 }).notNull().default("player"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  interests: text("interests").array(),
+  experience: varchar("experience"),
+  availability: varchar("availability"),
+  notifications: boolean("notifications").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

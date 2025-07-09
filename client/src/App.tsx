@@ -8,10 +8,11 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Checkout from "@/pages/checkout";
+import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   return (
     <Switch>
@@ -22,8 +23,10 @@ function Router() {
         </>
       ) : (
         <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/onboarding" component={Onboarding} />
+          {/* Redirect new users to onboarding */}
+          <Route path="/" component={user?.onboardingCompleted ? Dashboard : Onboarding} />
+          <Route path="/dashboard" component={user?.onboardingCompleted ? Dashboard : Onboarding} />
           <Route path="/checkout" component={Checkout} />
         </>
       )}
