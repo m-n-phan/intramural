@@ -200,4 +200,4 @@ For support and questions:
 - Tournament bracket management
 - Live streaming integration
 - Multi-university support
-- API for third-party integrations
+- API for third-party integrations# intramural
