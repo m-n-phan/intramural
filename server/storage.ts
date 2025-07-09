@@ -59,9 +59,9 @@ export interface IStorage {
   deleteGame(id: number): Promise<void>;
   
   // Analytics operations
-  getTeamStats(): Promise<any>;
-  getParticipationStats(): Promise<any>;
-  getRevenueStats(): Promise<any>;
+  getTeamStats(): Promise<{ totalTeams: number }>;
+  getParticipationStats(): Promise<{ totalPlayers: number }>;
+  getRevenueStats(): Promise<{ totalRevenue: string; paidTeams: number; pendingRevenue: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -276,7 +276,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics operations
-  async getTeamStats(): Promise<any> {
+  async getTeamStats(): Promise<{ totalTeams: number }> {
     const [result] = await db
       .select({
         totalTeams: count(teams.id),
@@ -285,7 +285,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getParticipationStats(): Promise<any> {
+  async getParticipationStats(): Promise<{ totalPlayers: number }> {
     const [result] = await db
       .select({
         totalPlayers: count(teamMembers.id),
@@ -294,7 +294,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getRevenueStats(): Promise<any> {
+  async getRevenueStats(): Promise<{ totalRevenue: string; paidTeams: number; pendingRevenue: string }> {
     const [result] = await db
       .select({
         totalRevenue: sql<string>`COALESCE(SUM(${sports.teamFee}), 0)`,

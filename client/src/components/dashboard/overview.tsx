@@ -2,17 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Gamepad2, TrendingUp, DollarSign, Trophy } from "lucide-react";
+import { Game } from "@shared/schema";
+import { AnalyticsOverview } from "./analytics";
 
 export function Overview() {
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['/api/analytics/overview'],
   });
 
-  const { data: recentGames } = useQuery({
+  const { data: recentGames } = useQuery<Game[]>({
     queryKey: ['/api/games/recent'],
   });
 
-  const { data: upcomingGames } = useQuery({
+  const { data: upcomingGames } = useQuery<Game[]>({
     queryKey: ['/api/games/upcoming'],
   });
 
@@ -108,8 +110,8 @@ export function Overview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentGames?.length > 0 ? (
-                recentGames.slice(0, 3).map((game: any) => (
+              {recentGames && recentGames.length > 0 ? (
+                recentGames.slice(0, 3).map((game) => (
                   <div key={game.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -148,8 +150,8 @@ export function Overview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {upcomingGames?.length > 0 ? (
-                upcomingGames.slice(0, 3).map((game: any) => (
+              {(upcomingGames?.length ?? 0) > 0 ? (
+                (upcomingGames as Game[]).slice(0, 3).map((game) => (
                   <div key={game.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">

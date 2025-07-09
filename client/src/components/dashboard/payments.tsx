@@ -4,13 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, Clock, AlertTriangle, RefreshCw, CreditCard } from "lucide-react";
 import { Link } from "wouter";
+import { Team } from "@shared/schema";
+import { AnalyticsOverview } from "./analytics";
 
 export function Payments() {
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['/api/analytics/overview'],
   });
 
-  const { data: teams } = useQuery({
+  const { data: teams } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
   });
 
@@ -117,7 +119,7 @@ export function Payments() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {teams?.length > 0 ? (
+          {(teams?.length ?? 0) > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -130,7 +132,7 @@ export function Payments() {
                   </tr>
                 </thead>
                 <tbody>
-                  {teams.slice(0, 10).map((team: any) => (
+                  {teams && teams.slice(0, 10).map((team) => (
                     <tr key={team.id} className="border-b">
                       <td className="py-4 px-6">
                         <div className="flex items-center">
@@ -145,11 +147,11 @@ export function Payments() {
                       </td>
                       <td className="py-4 px-6">
                         <span className="text-foreground">
-                          {new Date(team.createdAt).toLocaleDateString()}
+                          {new Date(team.createdAt || "").toLocaleDateString()}
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        {getPaymentStatusBadge(team.paymentStatus)}
+                        {getPaymentStatusBadge(team.paymentStatus || "")}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex space-x-2">

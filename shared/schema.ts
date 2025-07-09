@@ -101,7 +101,7 @@ export const games = pgTable("games", {
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
-  captainedTeams: many(teams),
+  captainedTeams: many(teams, { relationName: "captain" }),
   teamMemberships: many(teamMembers),
 }));
 
@@ -118,6 +118,7 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
   captain: one(users, {
     fields: [teams.captainId],
     references: [users.id],
+    relationName: "captain",
   }),
   members: many(teamMembers),
   homeGames: many(games, { relationName: "homeTeam" }),

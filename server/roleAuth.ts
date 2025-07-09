@@ -1,16 +1,24 @@
-import { RequestHandler } from "express";
-import { USER_ROLES, UserRole } from "@shared/schema";
+import { Request, Response, NextFunction, RequestHandler } from "express";
+import { USER_ROLES, UserRole, User } from "@shared/schema";
 import { storage } from "./storage";
+
+interface AuthenticatedRequest extends Request {
+  auth: {
+    userId?: string;
+  };
+  currentUser?: User;
+}
 
 // Role-based access control middleware
 export const requireRole = (requiredRoles: UserRole | UserRole[]): RequestHandler => {
-  return async (req, res, next) => {
+  return async (req: Request, res, next) => {
+    const authReq = req as AuthenticatedRequest;
     try {
-      if (!req.auth.userId) {
+      if (!authReq.auth.userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const userId = req.auth.userId;
+      const userId = authReq.auth.userId;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
@@ -28,7 +36,7 @@ export const requireRole = (requiredRoles: UserRole | UserRole[]): RequestHandle
       }
 
       // Attach user to request for easier access
-      (req as any).currentUser = user;
+      authReq.currentUser = user;
       next();
     } catch (error) {
       console.error("Role auth error:", error);

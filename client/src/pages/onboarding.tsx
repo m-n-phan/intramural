@@ -22,6 +22,7 @@ import {
   Zap
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { Sport, User } from "@shared/schema";
 
 interface OnboardingData {
   interests: string[];
@@ -31,7 +32,7 @@ interface OnboardingData {
 }
 
 export default function Onboarding() {
-  const { user } = useAuth();
+  const { user: typedUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -159,7 +160,7 @@ export default function Onboarding() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">
-                    Hi {user?.firstName || 'there'}!
+                    Hi {typedUser?.firstName || 'there'}!
                   </h3>
                   <p className="text-muted-foreground mb-6">
                     We're excited to have you join our intramural sports community. 
@@ -192,7 +193,7 @@ export default function Onboarding() {
                   Select the sports you're interested in participating in:
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {sports?.map((sport: any) => (
+                  {Array.isArray(sports) && (sports as Sport[]).map((sport) => (
                     <div key={sport.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`sport-${sport.id}`}

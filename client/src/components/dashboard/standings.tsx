@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy, Award, Medal } from "lucide-react";
+import { Sport, Team } from "@shared/schema";
 
 // Function to determine the current season based on month and year
 const getCurrentSeason = () => {
@@ -29,22 +30,22 @@ const getCurrentSeason = () => {
 };
 
 export function Standings() {
-  const { data: sports, isLoading: sportsLoading } = useQuery({
+  const { data: sports, isLoading: sportsLoading } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const { data: teams } = useQuery({
+  const { data: teams } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
   });
 
   const getTeamsBySport = (sportId: number) => {
-    return teams?.filter((team: any) => team.sportId === sportId)
-      .sort((a: any, b: any) => {
+    return teams?.filter((team) => team.sportId === sportId)
+      .sort((a, b) => {
         // Sort by points first, then by wins, then by win percentage
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.wins !== a.wins) return b.wins - a.wins;
-        const aWinPct = a.wins / (a.wins + a.losses || 1);
-        const bWinPct = b.wins / (b.wins + b.losses || 1);
+        if ((b.points ?? 0) !== (a.points ?? 0)) return (b.points ?? 0) - (a.points ?? 0);
+        if ((b.wins ?? 0) !== (a.wins ?? 0)) return (b.wins ?? 0) - (a.wins ?? 0);
+        const aWinPct = (a.wins ?? 0) / ((a.wins ?? 0) + (a.losses ?? 0) || 1);
+        const bWinPct = (b.wins ?? 0) / ((b.wins ?? 0) + (b.losses ?? 0) || 1);
         return bWinPct - aWinPct;
       }) || [];
   };
@@ -102,7 +103,7 @@ export function Standings() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {sports?.map((sport: any) => {
+        {sports?.map((sport) => {
           const sportTeams = getTeamsBySport(sport.id);
           
           return (
@@ -127,7 +128,7 @@ export function Standings() {
                         </tr>
                       </thead>
                       <tbody>
-                        {sportTeams.map((team: any, index: number) => (
+                        {sportTeams.map((team, index: number) => (
                           <tr key={team.id} className="border-b">
                             <td className="py-4 px-4">
                               <div className="flex items-center">
@@ -150,12 +151,12 @@ export function Standings() {
                             <td className="py-4 px-4">
                               <span className="text-foreground">
                                 {team.wins}-{team.losses}
-                                {team.draws > 0 && `-${team.draws}`}
+                                {(team.draws ?? 0) > 0 && `-${team.draws}`}
                               </span>
                             </td>
                             <td className="py-4 px-4">
                               <span className="text-foreground">
-                                {getWinPercentage(team.wins, team.losses).toFixed(3)}
+                                {getWinPercentage(team.wins ?? 0, team.losses ?? 0).toFixed(3)}
                               </span>
                             </td>
                             <td className="py-4 px-4">
@@ -178,7 +179,7 @@ export function Standings() {
         })}
       </div>
 
-      {(!sports || sports.length === 0) && (
+      {(!sports || !Array.isArray(sports) || sports.length === 0) && (
         <div className="text-center py-12">
           <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No Sports Available</h3>

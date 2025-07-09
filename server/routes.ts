@@ -1,4 +1,26 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
+
+interface RequestWithAuth extends Request {
+  auth: {
+    userId: string;
+  };
+}
+
+interface ClerkWebhookEvent {
+  data: {
+    id:string;
+    first_name?: string;
+    last_name?: string;
+    email_addresses?: { id: string; email_address: string }[];
+    primary_email_address_id?: string;
+  };
+  type: "user.created" | "user.updated" | string;
+}
+
+interface EmailAddress {
+  id: string;
+  email_address: string;
+}
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
@@ -43,10 +65,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "svix-id": svix_id,
         "svix-timestamp": svix_timestamp,
         "svix-signature": svix_signature,
-      }) as any;
+      }) as ClerkWebhookEvent;
     } catch (err) {
       console.error('Error verifying webhook:', err);
-      return res.status(400).json({ 'message': err });
+      return res.status(400).json({ 'message': (err as Error).message });
     }
 
     const { id } = evt.data;
@@ -54,9 +76,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     if (eventType === 'user.created' || eventType === 'user.updated') {
       const { first_name, last_name, email_addresses, primary_email_address_id } = evt.data;
-      const email = email_addresses.find((e: any) => e.id === primary_email_address_id)?.email_address;
+      const email = email_addresses?.find((e: EmailAddress) => e.id === primary_email_address_id)?.email_address;
       await storage.upsertUser({
-        id: id,
+        id: id!,
         firstName: first_name,
         lastName: last_name,
         email: email,
@@ -67,9 +89,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', async (req, res) => {
+    const authReq = req as RequestWithAuth;
     try {
-      const userId = req.auth.userId;
+      const userId = authReq.auth.userId;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -79,9 +102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Onboarding routes
-  app.post('/api/onboarding/complete', async (req: any, res) => {
+  app.post('/api/onboarding/complete', async (req, res) => {
+    const authReq = req as RequestWithAuth;
     try {
-      const userId = req.auth.userId;
+      const userId = authReq.auth.userId;
       const onboardingData = req.body;
       
       // Update user with onboarding completion
@@ -129,8 +153,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put('/api/auth/user', async (req, res) => {
+    const authReq = req as RequestWithAuth;
     try {
-      const userId = (req as any).auth.userId;
+      const userId = authReq.auth.userId;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
@@ -303,7 +328,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId,
         userId,
         role: 'player',
-        joinedAt: new Date(),
       });
       
       res.json(member);
@@ -505,13 +529,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
         metadata: {
-          userId: (req as any).auth.userId || 'unknown',
+          userId: (req as RequestWithAuth).auth.userId || 'unknown',
         },
       });
       res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+      res.status(500).json({ message: "Error creating payment intent: " + errorMessage });
     }
   });
 

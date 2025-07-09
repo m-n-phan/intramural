@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { User } from '@shared/schema';
 
-async function fetchUser(): Promise<User> {
-  return await apiRequest("GET", "/api/auth/user");
+async function fetchUser() {
+  const response = await apiRequest("GET", "/api/auth/user");
+  return response.json();
 }
 
 export const useAuth = () => {

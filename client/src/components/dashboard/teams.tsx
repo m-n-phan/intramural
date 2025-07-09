@@ -12,51 +12,51 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertTeamSchema } from "@shared/schema";
+import { insertTeamSchema, Team, Sport, User, TeamMember } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
 export function Teams() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user: typedUser } = useAuth();
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showRosterDialog, setShowRosterDialog] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("all");
 
-  const { data: teams, isLoading } = useQuery({
+  const { data: teams, isLoading } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
   });
 
-  const { data: sports } = useQuery({
+  const { data: sports } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const { data: teamMembers } = useQuery({
+  const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ['/api/teams', selectedTeam?.id, 'members'],
     enabled: !!selectedTeam,
   });
 
-  const { data: users } = useQuery({
-    queryKey: ['/api/users'],
+  const { data: typedUsers } = useQuery<User[]>({
+    queryKey: ['/api/typedUsers'],
   });
 
   // Filter teams based on search term and selected sport
-  const filteredTeams = teams?.filter((team: any) => {
+  const filteredTeams = teams?.filter((team) => {
     const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSport = selectedSport === "all" || team.sportId.toString() === selectedSport;
     return matchesSearch && matchesSport;
   });
 
-  const form = useForm({
+  const form = useForm<Omit<Team, "id">>({
     resolver: zodResolver(insertTeamSchema),
     defaultValues: {
       name: "",
       sportId: 0,
-      captainId: user?.id || "",
+      captainId: typedUser?.id || "",
       gender: "co-ed",
       division: "recreational",
       status: "active",
@@ -64,7 +64,7 @@ export function Teams() {
   });
 
   const createTeamMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Omit<Team, 'id'>) => {
       return await apiRequest("POST", "/api/teams", data);
     },
     onSuccess: () => {
@@ -85,17 +85,17 @@ export function Teams() {
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Omit<Team, 'id'>) => {
     // Ensure sportId is a number
     const submitData = {
       ...data,
       sportId: Number(data.sportId),
-      captainId: user?.id,
+      captainId: typedUser?.id || "",
     };
     createTeamMutation.mutate(submitData);
   };
 
-  const handleViewTeam = (team: any) => {
+  const handleViewTeam = (team: Team) => {
     // Navigate to team detail view
     toast({
       title: "Team Details",
@@ -103,7 +103,7 @@ export function Teams() {
     });
   };
 
-  const handleManageRoster = (team: any) => {
+  const handleManageRoster = (team: Team) => {
     setSelectedTeam(team);
     setShowRosterDialog(true);
   };
@@ -209,14 +209,14 @@ export function Teams() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sport</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() || ""}>
+                      <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() ?? ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a sport" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {sports?.map((sport: any) => (
+                          {Array.isArray(sports) && sports.map((sport) => (
                             <SelectItem key={sport.id} value={sport.id.toString()}>
                               {sport.name}
                             </SelectItem>
@@ -255,7 +255,7 @@ export function Teams() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Division</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select division" />
@@ -304,7 +304,7 @@ export function Teams() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sports</SelectItem>
-                  {sports?.map((sport: any) => (
+                  {sports?.map((sport) => (
                     <SelectItem key={sport.id} value={sport.id.toString()}>
                       {sport.name}
                     </SelectItem>
@@ -315,7 +315,7 @@ export function Teams() {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredTeams?.length > 0 ? (
+          {filteredTeams && filteredTeams.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -331,7 +331,7 @@ export function Teams() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTeams.map((team: any) => (
+                  {filteredTeams.map((team) => (
                     <tr key={team.id} className="border-b">
                       <td className="py-4 px-6">
                         <div className="flex items-center">
@@ -348,7 +348,7 @@ export function Teams() {
                       </td>
                       <td className="py-4 px-6">
                         <Badge variant="outline">
-                          {sports?.find((s: any) => s.id === team.sportId)?.name || 'Unknown'}
+                          {sports?.find((s) => s.id === team.sportId)?.name || 'Unknown'}
                         </Badge>
                       </td>
                       <td className="py-4 px-6">
@@ -361,13 +361,13 @@ export function Teams() {
                       </td>
                       <td className="py-4 px-6">
                         <span className="text-foreground">
-                          {team.playerCount || 0} players
+                          {teamMembers?.filter(m => m.teamId === team.id).length || 0} players
                         </span>
                       </td>
                       <td className="py-4 px-6">
                         <span className="text-foreground">
-                          {team.wins || 0}-{team.losses || 0}
-                          {team.draws > 0 && `-${team.draws}`}
+                          {team.wins}-{team.losses}
+                          {(team.draws ?? 0) > 0 && `-${team.draws}`}
                         </span>
                       </td>
                       <td className="py-4 px-6">
@@ -436,9 +436,9 @@ export function Teams() {
                   <SelectValue placeholder="Select a player to add" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users?.filter((user: any) => 
-                    !teamMembers?.some((member: any) => member.userId === user.id)
-                  ).map((user: any) => (
+                  {typedUsers?.filter((user) => 
+                    !teamMembers?.some((member) => member.userId === user.id)
+                  ).map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.firstName} {user.lastName} ({user.email})
                     </SelectItem>
@@ -458,7 +458,7 @@ export function Teams() {
             {/* Current Members */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Current Members</h3>
-              {teamMembers?.length > 0 ? (
+              {teamMembers && teamMembers.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -469,8 +469,8 @@ export function Teams() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {teamMembers.map((member: any) => {
-                      const memberUser = users?.find((u: any) => u.id === member.userId);
+                    {Array.isArray(teamMembers) && teamMembers.map((member) => {
+                      const memberUser = Array.isArray(typedUsers) ? typedUsers.find((u) => u.id === member.userId) : null;
                       return (
                         <TableRow key={member.id}>
                           <TableCell>
@@ -494,7 +494,7 @@ export function Teams() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {new Date(member.joinedAt).toLocaleDateString()}
+                            {new Date(member.joinedAt || "").toLocaleDateString()}
                           </TableCell>
                           <TableCell>
                             <Button 

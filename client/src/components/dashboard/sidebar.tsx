@@ -11,7 +11,7 @@ import {
   Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_ROLES } from "@shared/schema";
+import { USER_ROLES, User } from "@shared/schema";
 
 type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
@@ -22,7 +22,8 @@ interface SidebarProps {
 
 export function Sidebar({ activeView, setActiveView }: SidebarProps) {
   const { user } = useAuth();
-  const isAdmin = user?.role === USER_ROLES.ADMIN;
+  const typedUser = user as User;
+  const isAdmin = typedUser?.role === USER_ROLES.ADMIN;
   
   const navItems = [
     { id: 'overview', label: 'Overview', icon: Home },

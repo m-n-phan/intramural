@@ -28,9 +28,10 @@ import {
   CreditCard
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { User as UserType } from "@shared/schema";
 
 export function Settings() {
-  const { user } = useAuth();
+  const { user: typedUser } = useAuth();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   
@@ -42,17 +43,16 @@ export function Settings() {
   });
 
   const [accountForm, setAccountForm] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || ''
+    firstName: typedUser?.firstName || '',
+    lastName: typedUser?.lastName || '',
+    email: typedUser?.email || ''
   });
 
   const updateAccountMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await apiRequest('PUT', '/api/auth/user', data);
+    mutationFn: async (data: { firstName: string; lastName: string; email: string }) => {
+      await apiRequest('PUT', '/api/users/me', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
@@ -105,7 +105,7 @@ export function Settings() {
     }
   };
 
-  if (!user) {
+  if (!typedUser) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -139,17 +139,17 @@ export function Settings() {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.profileImageUrl} />
+                <AvatarImage src={typedUser.profileImageUrl ?? undefined} />
                 <AvatarFallback className="text-lg">
-                  {user.firstName?.[0]}{user.lastName?.[0]}
+                  {typedUser.firstName?.[0]}{typedUser.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge className={getRoleColor(user.role)}>
+                  <Badge className={getRoleColor(typedUser.role)}>
                     <div className="flex items-center gap-1">
-                      {getRoleIcon(user.role)}
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      {getRoleIcon(typedUser.role)}
+                      {typedUser.role.charAt(0).toUpperCase() + typedUser.role.slice(1)}
                     </div>
                   </Badge>
                 </div>
@@ -342,7 +342,7 @@ export function Settings() {
         </Card>
 
         {/* Billing Settings (if applicable) */}
-        {(user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.CAPTAIN) && (
+        {(typedUser.role === USER_ROLES.ADMIN || typedUser.role === USER_ROLES.CAPTAIN) && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">

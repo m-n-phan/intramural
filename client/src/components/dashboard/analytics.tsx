@@ -1,21 +1,30 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Users, Trophy, DollarSign, Activity } from "lucide-react";
+import { Sport, Team, Game } from "@shared/schema";
+
+export interface AnalyticsOverview {
+  activeTeams: number;
+  totalPlayers: number;
+  totalRevenue: number;
+  paidTeams: number;
+  pendingRevenue: number;
+}
 
 export function Analytics() {
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['/api/analytics/overview'],
   });
 
-  const { data: sports } = useQuery({
+  const { data: sports } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const { data: teams } = useQuery({
+  const { data: teams } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
   });
 
-  const { data: games } = useQuery({
+  const { data: games } = useQuery<Game[]>({
     queryKey: ['/api/games'],
   });
 
@@ -41,8 +50,8 @@ export function Analytics() {
     );
   }
 
-  const participationBySport = sports?.map((sport: any) => {
-    const sportTeams = teams?.filter((team: any) => team.sportId === sport.id) || [];
+  const participationBySport = sports?.map((sport) => {
+    const sportTeams = teams?.filter((team) => team.sportId === sport.id) || [];
     const totalPlayers = sportTeams.length * 8; // Estimate 8 players per team
     return {
       name: sport.name,
@@ -61,8 +70,8 @@ export function Analytics() {
     { month: 'Jun', games: 58, participation: 490 },
   ];
 
-  const completedGames = games?.filter((game: any) => game.status === 'completed').length || 0;
-  const scheduledGames = games?.filter((game: any) => game.status === 'scheduled').length || 0;
+  const completedGames = games?.filter((game) => game.status === 'completed').length || 0;
+  const scheduledGames = games?.filter((game) => game.status === 'scheduled').length || 0;
   const totalGames = games?.length || 0;
   const gameCompletionRate = totalGames > 0 ? (completedGames / totalGames) * 100 : 0;
 
@@ -229,7 +238,7 @@ export function Analytics() {
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Cancelled</span>
                 <span className="font-medium text-foreground">
-                  {games?.filter((game: any) => game.status === 'cancelled').length || 0}
+                  {games?.filter((game) => game.status === 'cancelled').length || 0}
                 </span>
               </div>
             </div>
@@ -242,7 +251,7 @@ export function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {teams?.slice(0, 3).map((team: any, index: number) => (
+              {teams?.slice(0, 3).map((team, index: number) => (
                 <div key={team.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
@@ -270,7 +279,7 @@ export function Analytics() {
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Avg per Sport</span>
                 <span className="font-medium text-foreground">
-                  ${sports?.length > 0 ? ((analytics?.totalRevenue || 0) / sports.length).toFixed(0) : '0'}
+                  ${sports && sports.length > 0 ? ((analytics?.totalRevenue || 0) / sports.length).toFixed(0) : '0'}
                 </span>
               </div>
               <div className="flex justify-between items-center">

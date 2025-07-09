@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertSportSchema } from "@shared/schema";
+import { insertSportSchema, Sport, InsertSport } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,11 +46,11 @@ export function Sports() {
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  const { data: sports, isLoading } = useQuery({
+  const { data: sports, isLoading } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const form = useForm({
+  const form = useForm<InsertSport>({
     resolver: zodResolver(insertSportSchema),
     defaultValues: {
       name: "",
@@ -65,7 +65,7 @@ export function Sports() {
   });
 
   const createSportMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: InsertSport) => {
       return await apiRequest("POST", "/api/sports", data);
     },
     onSuccess: () => {
@@ -86,7 +86,7 @@ export function Sports() {
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: InsertSport) => {
     createSportMutation.mutate(data);
   };
 
@@ -155,7 +155,7 @@ export function Sports() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Sport description..." {...field} />
+                        <Textarea placeholder="Sport description..." {...field} value={field.value ?? ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -191,7 +191,7 @@ export function Sports() {
                       <FormItem>
                         <FormLabel>Max Teams</FormLabel>
                         <FormControl>
-                          <Input type="number" {...field} />
+                          <Input type="number" {...field} value={field.value ?? 0} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -204,7 +204,7 @@ export function Sports() {
                       <FormItem>
                         <FormLabel>Team Fee ($)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input type="number" step="0.01" {...field} value={field.value ?? ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -219,7 +219,7 @@ export function Sports() {
                       <FormItem>
                         <FormLabel>Min Players</FormLabel>
                         <FormControl>
-                          <Input type="number" {...field} />
+                          <Input type="number" {...field} value={field.value ?? 0} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -232,7 +232,7 @@ export function Sports() {
                       <FormItem>
                         <FormLabel>Max Players</FormLabel>
                         <FormControl>
-                          <Input type="number" {...field} />
+                          <Input type="number" {...field} value={field.value ?? 0} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -254,8 +254,8 @@ export function Sports() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sports?.length > 0 ? (
-          sports.map((sport: any) => (
+        {(sports?.length ?? 0) > 0 ? (
+          (sports as Sport[]).map((sport) => (
             <Card key={sport.id}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">

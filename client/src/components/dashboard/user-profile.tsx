@@ -2,13 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_ROLES } from "@shared/schema";
+import { USER_ROLES, User } from "@shared/schema";
 import { Shield, Users, UserCheck, UserCog, Info } from "lucide-react";
 
 export function UserProfile() {
-  const { user } = useAuth();
+  const { user: typedUser } = useAuth();
 
-  if (!user) {
+  if (!typedUser) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -45,7 +45,7 @@ export function UserProfile() {
   const getRoleDescription = (role: string) => {
     switch (role) {
       case USER_ROLES.ADMIN:
-        return "Full access to all features including user management, sport creation, and system configuration.";
+        return "Full access to all features including typedUser management, sport creation, and system configuration.";
       case USER_ROLES.CAPTAIN:
         return "Can manage teams, register players, and access team-specific features.";
       case USER_ROLES.REFEREE:
@@ -78,21 +78,21 @@ export function UserProfile() {
           <CardContent>
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.profileImageUrl} />
+                <AvatarImage src={typedUser.profileImageUrl ?? undefined} />
                 <AvatarFallback className="text-lg">
-                  {user.firstName?.[0]}{user.lastName?.[0]}
+                  {typedUser.firstName?.[0]}{typedUser.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">
-                  {user.firstName} {user.lastName}
+                  {typedUser.firstName} {typedUser.lastName}
                 </h3>
-                <p className="text-muted-foreground">{user.email}</p>
+                <p className="text-muted-foreground">{typedUser.email}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge className={getRoleColor(user.role)}>
+                  <Badge className={getRoleColor(typedUser.role)}>
                     <div className="flex items-center gap-1">
-                      {getRoleIcon(user.role)}
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      {getRoleIcon(typedUser.role)}
+                      {typedUser.role.charAt(0).toUpperCase() + typedUser.role.slice(1)}
                     </div>
                   </Badge>
                 </div>
@@ -115,35 +115,35 @@ export function UserProfile() {
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm">{getRoleDescription(user.role)}</p>
+                <p className="text-sm">{getRoleDescription(typedUser.role)}</p>
               </div>
               
               <div className="grid gap-3">
                 <h4 className="font-medium">Your permissions include:</h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
-                  {user.role === USER_ROLES.ADMIN && (
+                  {typedUser.role === USER_ROLES.ADMIN && (
                     <>
                       <li>• Create and manage sports</li>
-                      <li>• Manage user roles and permissions</li>
+                      <li>• Manage typedUser roles and permissions</li>
                       <li>• View system analytics</li>
                       <li>• Access payment and billing features</li>
                     </>
                   )}
-                  {user.role === USER_ROLES.CAPTAIN && (
+                  {typedUser.role === USER_ROLES.CAPTAIN && (
                     <>
                       <li>• Create and manage teams</li>
                       <li>• Register team members</li>
                       <li>• View team schedules and standings</li>
                     </>
                   )}
-                  {user.role === USER_ROLES.REFEREE && (
+                  {typedUser.role === USER_ROLES.REFEREE && (
                     <>
                       <li>• Update game scores</li>
                       <li>• Manage game schedules</li>
                       <li>• Access referee tools</li>
                     </>
                   )}
-                  {user.role === USER_ROLES.PLAYER && (
+                  {typedUser.role === USER_ROLES.PLAYER && (
                     <>
                       <li>• Join teams</li>
                       <li>• View game schedules</li>

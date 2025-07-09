@@ -42,7 +42,11 @@ function Router() {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/onboarding"
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="intramural-ui-theme">
           <TooltipProvider>
