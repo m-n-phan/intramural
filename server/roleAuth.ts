@@ -6,11 +6,11 @@ import { storage } from "./storage";
 export const requireRole = (requiredRoles: UserRole | UserRole[]): RequestHandler => {
   return async (req, res, next) => {
     try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Unauthorized" });
+      if (!req.auth.userId) {
+        return res.status(401).json({ message: "User not authenticated" });
       }
 
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = req.auth.userId;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }

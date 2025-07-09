@@ -12,6 +12,7 @@ import {
   Check,
   ArrowRight
 } from "lucide-react";
+import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 
 export default function Landing() {
   return (
@@ -38,15 +39,18 @@ export default function Landing() {
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Button 
-                variant="ghost" 
-                onClick={() => window.location.href = '/api/login'}
-              >
-                Sign In
-              </Button>
-              <Button onClick={() => window.location.href = '/api/login'}>
-                Get Started
-              </Button>
+              <SignInButton mode="modal">
+                <Button 
+                  variant="ghost"
+                >
+                  Sign In
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button>
+                  Get Started
+                </Button>
+              </SignUpButton>
             </div>
           </div>
         </div>
@@ -64,14 +68,15 @@ export default function Landing() {
               Replace spreadsheets and outdated portals with a Notion-style platform that helps universities run amazing intramural programs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg"
-                onClick={() => window.location.href = '/api/login'}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <SignUpButton mode="modal">
+                <Button 
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Start Free Trial
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </SignUpButton>
               <Button variant="outline" size="lg">
                 Schedule Demo
               </Button>

@@ -1,0 +1,28 @@
+{
+  "output": {
+    "filePath": "repomix-output-Intramural-TOPLEVEL.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": false,
+    "directoryStructure": true,
+    "purpose": false,
+    "removeComments": true,
+    "removeEmptyLines": true,
+    "compress": false,
+    "topFilesLength": 15,
+    "showLineNumbers": false,
+    "copyToClipboard": false
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": ["*.txt","mineflayer/mineflayer, Frontend/MelodyApp/ios"]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

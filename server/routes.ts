@@ -3,10 +3,12 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
 import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { z } from "zod";
+import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
+import express from "express";
+import { Webhook } from "svix";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -15,13 +17,59 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  app.use(ClerkExpressWithAuth());
+
+  // Webhook handler for Clerk
+  app.post('/api/webhooks/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
+    const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+    if (!WEBHOOK_SECRET) {
+      throw new Error("Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
+    }
+
+    const svix_id = req.headers["svix-id"] as string;
+    const svix_timestamp = req.headers["svix-timestamp"] as string;
+    const svix_signature = req.headers["svix-signature"] as string;
+
+    if (!svix_id || !svix_timestamp || !svix_signature) {
+      return res.status(400).json({ message: "Error occured -- no svix headers" });
+    }
+
+    const payload = req.body;
+    const wh = new Webhook(WEBHOOK_SECRET);
+
+    let evt;
+    try {
+      evt = wh.verify(payload, {
+        "svix-id": svix_id,
+        "svix-timestamp": svix_timestamp,
+        "svix-signature": svix_signature,
+      }) as any;
+    } catch (err) {
+      console.error('Error verifying webhook:', err);
+      return res.status(400).json({ 'message': err });
+    }
+
+    const { id } = evt.data;
+    const eventType = evt.type;
+
+    if (eventType === 'user.created' || eventType === 'user.updated') {
+      const { first_name, last_name, email_addresses, primary_email_address_id } = evt.data;
+      const email = email_addresses.find((e: any) => e.id === primary_email_address_id)?.email_address;
+      await storage.upsertUser({
+        id: id,
+        firstName: first_name,
+        lastName: last_name,
+        email: email,
+      });
+    }
+
+    res.status(200).json({ response: "Success" });
+  });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.auth.userId;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -31,9 +79,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Onboarding routes
-  app.post('/api/onboarding/complete', isAuthenticated, async (req: any, res) => {
+  app.post('/api/onboarding/complete', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.auth.userId;
       const onboardingData = req.body;
       
       // Update user with onboarding completion
@@ -80,9 +128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/auth/user', isAuthenticated, async (req, res) => {
+  app.put('/api/auth/user', async (req, res) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req as any).auth.userId;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
@@ -196,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/teams', isAuthenticated, async (req, res) => {
+  app.post('/api/teams', async (req, res) => {
     try {
       const teamData = insertTeamSchema.parse(req.body);
       const team = await storage.createTeam(teamData);
@@ -207,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/teams/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/teams/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const teamData = insertTeamSchema.partial().parse(req.body);
@@ -219,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/teams/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/teams/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteTeam(id);
@@ -320,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/games', isAuthenticated, async (req, res) => {
+  app.post('/api/games', async (req, res) => {
     try {
       const gameData = insertGameSchema.parse(req.body);
       
@@ -361,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/games/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/games/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const gameData = insertGameSchema.partial().parse(req.body);
@@ -416,7 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/games/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/games/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteGame(id);
@@ -428,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get('/api/analytics/overview', isAuthenticated, async (req, res) => {
+  app.get('/api/analytics/overview', async (req, res) => {
     try {
       const [teamStats, participationStats, revenueStats] = await Promise.all([
         storage.getTeamStats(),
@@ -450,14 +498,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment routes
-  app.post("/api/create-payment-intent", isAuthenticated, async (req, res) => {
+  app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount } = req.body;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
         metadata: {
-          userId: (req.user as any)?.claims?.sub || 'unknown',
+          userId: (req as any).auth.userId || 'unknown',
         },
       });
       res.json({ clientSecret: paymentIntent.client_secret });

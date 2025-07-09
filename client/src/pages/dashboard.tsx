@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/dashboard/sidebar";
@@ -13,16 +12,8 @@ import { Analytics } from "@/components/dashboard/analytics";
 import { RoleManagement } from "@/components/dashboard/role-management";
 import { Settings } from "@/components/dashboard/settings";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Bell, Settings as SettingsIcon, User, LogOut } from "lucide-react";
+import { UserButton, useUser } from "@clerk/clerk-react";
+import { Bell } from "lucide-react";
 
 // Function to determine the current season based on month and year
 const getCurrentSeason = () => {
@@ -52,25 +43,22 @@ const getCurrentSeason = () => {
 type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 export default function Dashboard() {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { isLoaded, isSignedIn } = useUser();
   const { toast } = useToast();
   const [activeView, setActiveView] = useState<DashboardView>('overview');
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoaded && !isSignedIn) {
       toast({
         title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        description: "You are logged out. Please sign in.",
         variant: "destructive",
       });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
+      // Redirect to landing page or sign-in page
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isSignedIn, isLoaded, toast]);
 
-  if (isLoading || !isAuthenticated) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -118,34 +106,7 @@ export default function Dashboard() {
               <Button variant="ghost" size="sm">
                 <Bell className="h-4 w-4" />
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 p-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.profileImageUrl} />
-                      <AvatarFallback>
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden md:block text-foreground">
-                      {user?.firstName} {user?.lastName}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setActiveView('settings')}>
-                    <SettingsIcon className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </div>

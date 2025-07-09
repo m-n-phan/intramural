@@ -1,14 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { User } from '@shared/schema';
 
-export function useAuth() {
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
+async function fetchUser(): Promise<User> {
+  return await apiRequest("GET", "/api/auth/user");
+}
+
+export const useAuth = () => {
+  const {
+    data: user,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<User, Error>({
+    queryKey: ['user'],
+    queryFn: fetchUser,
+    retry: 1, // Retry once on failure
+    refetchOnWindowFocus: false, // Optional: prevent refetching on window focus
   });
 
   return {
     user,
-    isLoading,
-    isAuthenticated: !!user,
+    loading: isLoading,
+    error: isError ? error : null,
+    isAuthenticated: !!user && !isLoading,
   };
-}
+};
