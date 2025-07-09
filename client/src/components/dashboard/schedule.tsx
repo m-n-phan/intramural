@@ -14,13 +14,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertGameSchema } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function Schedule() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedGame, setSelectedGame] = useState<any>(null);
@@ -39,6 +40,18 @@ export function Schedule() {
 
   const form = useForm({
     resolver: zodResolver(insertGameSchema),
+    defaultValues: {
+      sportId: 0,
+      homeTeamId: 0,
+      awayTeamId: 0,
+      scheduledAt: "",
+      venue: "",
+      status: "scheduled",
+    },
+  });
+
+  const editForm = useForm({
+    resolver: zodResolver(insertGameSchema.partial()),
     defaultValues: {
       sportId: 0,
       homeTeamId: 0,
@@ -91,6 +104,29 @@ export function Schedule() {
     },
   });
 
+  const updateGameMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: any }) => {
+      return await apiRequest("PUT", `/api/games/${data.id}`, data.updates);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Game updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      setShowEditDialog(false);
+      setSelectedGame(null);
+      editForm.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update game",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: any) => {
     // Ensure all numeric fields are properly converted
     const submitData = {
@@ -103,21 +139,62 @@ export function Schedule() {
     createGameMutation.mutate(submitData);
   };
 
+  const onEditSubmit = (data: any) => {
+    if (!selectedGame) return;
+    
+    const submitData = {
+      ...data,
+      sportId: Number(data.sportId),
+      homeTeamId: Number(data.homeTeamId),
+      awayTeamId: Number(data.awayTeamId),
+      scheduledAt: data.scheduledAt,
+    };
+    updateGameMutation.mutate({ id: selectedGame.id, updates: submitData });
+  };
+
   const handlePreviousMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
+    if (viewMode === 'week') {
+      setCurrentDate(prev => new Date(prev.getTime() - 7 * 24 * 60 * 60 * 1000));
+    } else {
+      setCurrentDate(subMonths(currentDate, 1));
+    }
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
+    if (viewMode === 'week') {
+      setCurrentDate(prev => new Date(prev.getTime() + 7 * 24 * 60 * 60 * 1000));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  const getDisplayTitle = () => {
+    if (viewMode === 'week') {
+      const weekStart = startOfWeek(currentDate);
+      const weekEnd = endOfWeek(currentDate);
+      return `${format(weekStart, 'MMM dd')} - ${format(weekEnd, 'MMM dd, yyyy')}`;
+    } else {
+      return format(currentDate, 'MMMM yyyy');
+    }
   };
 
   const handleEditGame = (game: any) => {
     setSelectedGame(game);
-    // You can implement edit functionality here
-    toast({
-      title: "Edit Game",
-      description: "Edit functionality will be implemented",
+    
+    // Format the date for datetime-local input
+    const formattedDate = format(new Date(game.scheduledAt), "yyyy-MM-dd'T'HH:mm");
+    
+    // Populate the edit form with current game data
+    editForm.reset({
+      sportId: game.sportId,
+      homeTeamId: game.homeTeamId,
+      awayTeamId: game.awayTeamId,
+      scheduledAt: formattedDate,
+      venue: game.venue,
+      status: game.status,
     });
+    
+    setShowEditDialog(true);
   };
 
   const handleDeleteGame = (game: any) => {
@@ -126,8 +203,33 @@ export function Schedule() {
     }
   };
 
+  const getDateRange = () => {
+    if (viewMode === 'week') {
+      return {
+        start: startOfWeek(currentDate),
+        end: endOfWeek(currentDate)
+      };
+    } else {
+      return {
+        start: startOfMonth(currentDate),
+        end: endOfMonth(currentDate)
+      };
+    }
+  };
+
+  const getFilteredGames = (games: any[]) => {
+    if (!games) return [];
+    
+    const { start, end } = getDateRange();
+    return games.filter(game => {
+      const gameDate = new Date(game.scheduledAt);
+      return isWithinInterval(gameDate, { start, end });
+    });
+  };
+
   const groupGamesByDate = (games: any[]) => {
-    const grouped = games?.reduce((acc: any, game: any) => {
+    const filteredGames = getFilteredGames(games);
+    const grouped = filteredGames.reduce((acc: any, game: any) => {
       const date = format(new Date(game.scheduledAt), 'yyyy-MM-dd');
       if (!acc[date]) {
         acc[date] = [];
@@ -309,6 +411,153 @@ export function Schedule() {
             </Form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Game Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Game</DialogTitle>
+              <DialogDescription>
+                Update the game details below.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="sportId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sport</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sport" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sports?.map((sport: any) => (
+                            <SelectItem key={sport.id} value={sport.id.toString()}>
+                              {sport.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="homeTeamId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Home Team</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select home team" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {teams?.map((team: any) => (
+                              <SelectItem key={team.id} value={team.id.toString()}>
+                                {team.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="awayTeamId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Away Team</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select away team" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {teams?.map((team: any) => (
+                              <SelectItem key={team.id} value={team.id.toString()}>
+                                {team.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={editForm.control}
+                  name="scheduledAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date & Time</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="venue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Venue</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Court 1, Gym 2, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateGameMutation.isPending}>
+                    {updateGameMutation.isPending ? "Updating..." : "Update Game"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -318,7 +567,7 @@ export function Schedule() {
               <Button variant="ghost" size="sm" onClick={handlePreviousMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <CardTitle>{format(currentDate, 'MMMM yyyy')}</CardTitle>
+              <CardTitle>{getDisplayTitle()}</CardTitle>
               <Button variant="ghost" size="sm" onClick={handleNextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
