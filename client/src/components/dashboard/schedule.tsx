@@ -39,6 +39,32 @@ export function Schedule() {
     queryKey: ['/api/sports'],
   });
 
+  const form = useForm({
+    resolver: zodResolver(insertGameSchema),
+    defaultValues: {
+      sportId: 0,
+      homeTeamId: 0,
+      awayTeamId: 0,
+      gender: "co-ed",
+      scheduledAt: "",
+      venue: "",
+      status: "scheduled",
+    },
+  });
+
+  const editForm = useForm({
+    resolver: zodResolver(insertGameSchema.partial()),
+    defaultValues: {
+      sportId: 0,
+      homeTeamId: 0,
+      awayTeamId: 0,
+      gender: "co-ed",
+      scheduledAt: "",
+      venue: "",
+      status: "scheduled",
+    },
+  });
+
   // Function to get eligible teams based on selected sport, gender, and division
   const getEligibleTeams = (selectedSportId: number, selectedGender: string, selectedDivision?: string) => {
     if (!teams || !selectedSportId || !selectedGender) return [];
@@ -82,7 +108,7 @@ export function Schedule() {
         form.setValue("awayTeamId", 0);
       }
     }
-  }, [watchedHomeTeamId, watchedGender, selectedDivision]);
+  }, [watchedHomeTeamId, watchedGender, selectedDivision, teams, form]);
 
   // Clear away team when home team changes in edit form
   useEffect(() => {
@@ -92,33 +118,7 @@ export function Schedule() {
         editForm.setValue("awayTeamId", 0);
       }
     }
-  }, [watchedEditHomeTeamId, watchedEditGender, selectedEditDivision]);
-
-  const form = useForm({
-    resolver: zodResolver(insertGameSchema),
-    defaultValues: {
-      sportId: 0,
-      homeTeamId: 0,
-      awayTeamId: 0,
-      gender: "co-ed",
-      scheduledAt: "",
-      venue: "",
-      status: "scheduled",
-    },
-  });
-
-  const editForm = useForm({
-    resolver: zodResolver(insertGameSchema.partial()),
-    defaultValues: {
-      sportId: 0,
-      homeTeamId: 0,
-      awayTeamId: 0,
-      gender: "co-ed",
-      scheduledAt: "",
-      venue: "",
-      status: "scheduled",
-    },
-  });
+  }, [watchedEditHomeTeamId, watchedEditGender, selectedEditDivision, teams, editForm]);
 
   const createGameMutation = useMutation({
     mutationFn: async (data: any) => {
