@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Calendar, ChevronLeft, ChevronRight, MoreVertical, Clock } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,9 +38,9 @@ export function Schedule() {
   const form = useForm({
     resolver: zodResolver(insertGameSchema),
     defaultValues: {
-      sportId: undefined,
-      homeTeamId: undefined,
-      awayTeamId: undefined,
+      sportId: 0,
+      homeTeamId: 0,
+      awayTeamId: 0,
       scheduledAt: "",
       venue: "",
       status: "scheduled",
@@ -70,13 +70,15 @@ export function Schedule() {
   });
 
   const onSubmit = (data: any) => {
-    createGameMutation.mutate({
+    // Ensure all numeric fields are properly converted
+    const submitData = {
       ...data,
-      sportId: parseInt(data.sportId),
-      homeTeamId: parseInt(data.homeTeamId),
-      awayTeamId: parseInt(data.awayTeamId),
+      sportId: Number(data.sportId),
+      homeTeamId: Number(data.homeTeamId),
+      awayTeamId: Number(data.awayTeamId),
       scheduledAt: new Date(data.scheduledAt).toISOString(),
-    });
+    };
+    createGameMutation.mutate(submitData);
   };
 
   const groupGamesByDate = (games: any[]) => {
@@ -144,6 +146,9 @@ export function Schedule() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Schedule New Game</DialogTitle>
+              <DialogDescription>
+                Create a new game by selecting teams, date, and venue.
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -153,7 +158,7 @@ export function Schedule() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sport</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a sport" />
@@ -178,7 +183,7 @@ export function Schedule() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Home Team</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select home team" />
@@ -202,7 +207,7 @@ export function Schedule() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Away Team</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select away team" />

@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Users, Search, MoreVertical } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
@@ -183,6 +183,9 @@ export function Teams() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Team</DialogTitle>
+              <DialogDescription>
+                Create a new team by providing team details and selecting a sport.
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -387,6 +390,9 @@ export function Teams() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Manage Roster - {selectedTeam?.name}</DialogTitle>
+            <DialogDescription>
+              Add or remove players from the team roster.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
