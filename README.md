@@ -1,203 +1,119 @@
-# Intramural Sports Management Platform
+# Intramural - Sports Management Platform
 
-A comprehensive web-based platform for managing college and university intramural sports programs. Built with React, Node.js, and PostgreSQL.
+Intramural is a web and mobile platform designed to help colleges and universities manage their intramural sports programs. It provides a modern, streamlined experience for administrators, team captains, players, and staff, replacing outdated spreadsheet-based workflows. This platform aims to reduce administrative time, increase student engagement, and provide a reliable monetization solution.
 
-## 🏆 Features
+-----
 
-- **User Management**: Role-based access control (Admin, Captain, Referee, Player)
-- **Authentication**: Secure login via Replit Auth (OpenID Connect)
-- **Sports Management**: Create and manage multiple sports with custom rules
-- **Team Management**: Team registration, roster management, captain assignments
-- **Game Scheduling**: Advanced scheduling with division and gender restrictions
-- **Payment Integration**: Stripe-powered team registration fees
-- **Real-time Analytics**: Track participation, engagement, and program success
-- **Responsive Design**: Mobile-first design with dark/light theme support
+## Key Features
 
-## 🚀 Tech Stack
+  * **Role-Based Access Control**: Different user roles (Admin, Captain, Player, Referee) with specific permissions.
+  * **Team and Roster Management**: Captains can create teams, manage rosters, and handle player invitations.
+  * **Scheduling and Standings**: Automated game scheduling and real-time updates of standings.
+  * **Mobile-First Design**: A fully responsive interface with a focus on mobile usability for players and staff.
+  * **Offline Functionality**: Staff can enter live scores from their mobile devices, even with intermittent internet connectivity.
+  * **Secure Payments**: Integration with Stripe for handling team and player fees securely.
 
-### Frontend
-- **React** with TypeScript
-- **Vite** for build tooling
-- **Tailwind CSS** + **shadcn/ui** for styling
-- **TanStack Query** for state management
-- **Wouter** for routing
-- **React Hook Form** + **Zod** for form validation
+-----
 
-### Backend
-- **Node.js** with **Express**
-- **TypeScript** for type safety
-- **Drizzle ORM** with PostgreSQL
-- **Replit Auth** for authentication
-- **Stripe** for payment processing
-- **WebSocket** support for real-time features
+## Tech Stack
 
-### Database
-- **PostgreSQL** with Supabase
-- **Drizzle Kit** for migrations
-- **Connection pooling** for scalability
+| Category      | Technology                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Frontend** | [React](https://reactjs.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/)           |
+| **Backend** | [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)                                             |
+| **Database** | [PostgreSQL](https://www.postgresql.org/), [Drizzle ORM](https://orm.drizzle.team/)                           |
+| **Auth** | [Clerk](https://clerk.com/)                                                                                 |
+| **UI** | [shadcn/ui](https://ui.shadcn.com/)                                                                         |
+| **Testing** | [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) |
 
-## 📦 Installation
+-----
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd intramural-sports
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   Create a `.env` file with:
-   ```env
-   DATABASE_URL=your_postgresql_url
-   SESSION_SECRET=your_session_secret
-   STRIPE_SECRET_KEY=your_stripe_secret_key
-   VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
-   ```
-
-4. **Set up the database**
-   ```bash
-   npm run db:push
-   ```
-
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-## 🏗️ Project Structure
+## File Structure
 
 ```
-├── client/                 # React frontend
+├── client/         # Frontend application
 │   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── lib/           # Utility functions
-├── server/                # Express backend
-│   ├── db.ts             # Database connection
-│   ├── routes.ts         # API routes
-│   ├── storage.ts        # Database operations
-│   └── replitAuth.ts     # Authentication setup
-├── shared/               # Shared types and schemas
-│   └── schema.ts         # Database schema
-└── package.json
+│   │   ├── components/ # UI components
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── lib/        # Utility functions
+│   │   └── pages/      # Application pages
+├── migrations/     # Database migrations
+├── server/         # Backend server
+│   ├── __tests__/  # Server-side tests
+│   └── ...
+├── shared/         # Shared code (e.g., database schema)
+└── ...
 ```
 
-## 🔐 Authentication Flow
+-----
 
-1. **Landing Page**: Users see marketing content and sign-up options
-2. **Replit Auth**: Secure authentication via OpenID Connect
-3. **User Creation**: Automatic user record creation with default "player" role
-4. **Onboarding**: New users complete interest and preference setup
-5. **Dashboard Access**: Full platform access based on user role
+## Getting Started
 
-## 👥 User Roles
+To get a local copy up and running, follow these simple steps.
 
-- **Admin**: Full system access, user management, sports creation
-- **Captain**: Team management, player registration, team-specific features
-- **Referee**: Game management, score updates, referee tools
-- **Player**: Team participation, schedule viewing, game participation
+### Prerequisites
 
-## 🎯 Key Features
+  * Node.js and npm
+  * PostgreSQL
 
-### Sports Management
-- Create multiple sports with custom rules
-- Configure team limits, player limits, and fees
-- Set registration deadlines and season dates
-- Gender-specific and co-ed divisions
+### Installation
 
-### Team Management
-- Team registration with captain assignment
-- Roster management with player roles
-- Payment tracking and Stripe integration
-- Team statistics and performance tracking
+1.  Clone the repo
+    ```sh
+    git clone https://github.com/your_username/intramural.git
+    ```
+2.  Install NPM packages
+    ```sh
+    npm install
+    ```
+3.  Set up your environment variables by creating a `.env` file and adding the necessary keys (see `.env.backup` for an example).
+4.  Run the database migrations
+    ```sh
+    npm run db:push
+    ```
+5.  Start the development server
+    ```sh
+    npm run dev
+    ```
 
-### Game Scheduling
-- Smart scheduling with conflict detection
-- Division and gender-based restrictions
-- Automatic standings calculation
-- Real-time score updates
+-----
 
-### Analytics Dashboard
-- Participation statistics
-- Revenue tracking
-- Team performance metrics
-- User engagement analytics
+## Environment Variables
 
-## 🔧 Development
+To run this project, you will need to add the following environment variables to your `.env` file:
 
-### Available Scripts
+  * `DATABASE_URL`: The connection string for your PostgreSQL database.
+  * `STRIPE_SECRET_KEY`: Your secret key from Stripe for payment processing.
+  * `VITE_STRIPE_PUBLIC_KEY`: Your public key from Stripe.
+  * `VITE_CLERK_PUBLISHABLE_KEY`: Your publishable key from Clerk for authentication.
+  * `CLERK_SECRET_KEY`: Your secret key from Clerk.
+  * `CLERK_WEBHOOK_SECRET`: Your webhook secret from Clerk.
+  * `GEMINI_API_KEY`: Your API key for Gemini.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run db:push` - Push database schema changes
-- `npm run db:studio` - Open Drizzle Studio
+-----
 
-### Database Schema
+## Usage
 
-The application uses a comprehensive schema with:
-- Users (authentication and profiles)
-- Sports (sport definitions and rules)
-- Teams (team management and stats)
-- Games (scheduling and results)
-- Team Members (roster management)
+Once the application is running, you can access it at `http://localhost:3000`. You can sign up as a new user and explore the different features of the platform.
 
-### API Endpoints
+The main dashboard provides an overview of ongoing and upcoming games, team standings, and other relevant information. From there, you can navigate to different sections to manage sports, teams, and schedules.
 
-- `GET /api/auth/user` - Get current user
-- `POST /api/onboarding/complete` - Complete user onboarding
-- `GET /api/sports` - List all sports
-- `GET /api/teams` - List all teams
-- `GET /api/games` - List all games
-- `POST /api/create-payment-intent` - Create Stripe payment
+-----
 
-## 🚢 Deployment
+## Contributing
 
-### Production Build
-```bash
-npm run build
-```
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-### Environment Setup
-Ensure all environment variables are configured:
-- Database URL for production PostgreSQL
-- Stripe API keys for payment processing
-- Session secrets for authentication
-- Replit Auth configuration
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 
-### Deployment Options
-- **Replit Deployments**: Automatic deployment from Git
-- **Vercel/Netlify**: Frontend deployment with serverless functions
-- **Railway/Heroku**: Full-stack deployment
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-## 🤝 Contributing
+-----
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+## License
 
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- Check the documentation in `replit.md`
-- Review the component examples in `/client/src/components`
-- Check the API routes in `/server/routes.ts`
-
-## 🔮 Future Enhancements
-
-- Mobile app development (React Native)
-- Advanced analytics and reporting
-- Tournament bracket management
-- Live streaming integration
-- Multi-university support
-- API for third-party integrations# intramural
+Distributed under the MIT License. See `LICENSE` for more information.
