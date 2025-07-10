@@ -12,9 +12,12 @@ import {
   Check,
   ArrowRight
 } from "lucide-react";
-import { SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { SignInButton, SignUpButton, useUser } from "@clerk/clerk-react";
+import { Link } from "wouter";
 
 export default function Landing() {
+  const { isSignedIn, isLoaded } = useUser();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -39,18 +42,28 @@ export default function Landing() {
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <SignInButton mode="modal">
-                <Button 
-                  variant="ghost"
-                >
-                  Sign In
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button>
-                  Get Started
-                </Button>
-              </SignUpButton>
+              {isLoaded && isSignedIn ? (
+                <Link href="/dashboard">
+                  <Button>
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <SignInButton mode="modal">
+                    <Button 
+                      variant="ghost"
+                    >
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button>
+                      Get Started
+                    </Button>
+                  </SignUpButton>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -68,15 +81,27 @@ export default function Landing() {
               Replace spreadsheets and outdated portals with a Notion-style platform that helps universities run amazing intramural programs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <SignUpButton mode="modal">
-                <Button 
-                  size="lg"
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </SignUpButton>
+              {isLoaded && isSignedIn ? (
+                <Link href="/dashboard">
+                  <Button 
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <SignUpButton mode="modal">
+                  <Button 
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </SignUpButton>
+              )}
               <Button variant="outline" size="lg">
                 Schedule Demo
               </Button>

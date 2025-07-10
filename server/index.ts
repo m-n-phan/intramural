@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 
 
   
-  const port = 5000;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
   server.listen(
     {
       port,

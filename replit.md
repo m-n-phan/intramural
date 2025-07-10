@@ -43,7 +43,7 @@ Preferred communication style: Simple, everyday language.
 - **ORM**: Drizzle with PostgreSQL dialect
 - **Schema Location**: `shared/schema.ts` - shared between client and server
 - **Migrations**: Managed through Drizzle Kit
-- **Connection**: Neon serverless PostgreSQL with connection pooling
+- **Connection**: Supabase PostgreSQL with connection pooling
 
 ## Key Components
 
@@ -84,7 +84,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core Infrastructure
-- **Database**: Neon PostgreSQL (serverless)
+- **Database**: Supabase PostgreSQL
 - **Authentication**: Replit Auth service
 - **Payments**: Stripe payment processing
 - **Development**: Replit development environment
@@ -99,7 +99,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Development Environment
 - **Platform**: Replit with hot reloading
-- **Database**: Neon development database
+- **Database**: Supabase development database
 - **Build**: Vite dev server for frontend, tsx for backend
 - **Environment**: Development mode with additional debugging tools
 

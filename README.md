@@ -32,7 +32,7 @@ A comprehensive web-based platform for managing college and university intramura
 - **WebSocket** support for real-time features
 
 ### Database
-- **PostgreSQL** with Neon serverless
+- **PostgreSQL** with Supabase
 - **Drizzle Kit** for migrations
 - **Connection pooling** for scalability
 

@@ -10,6 +10,8 @@ import Checkout from "@/pages/checkout";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import { ClerkProvider, SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -17,8 +19,15 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
-function Router() {
+function AppContent() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && location === "/") {
+      setLocation("/dashboard");
+    }
+  }, [isLoaded, isSignedIn, location, setLocation]);
 
   if (!isLoaded) {
     return <div>Loading...</div>;
@@ -26,15 +35,38 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={Landing} />
-      <Route path="/checkout" component={Checkout} />
-      <SignedIn>
-        <Route path="/onboarding" component={Onboarding} />
-        <Route path="/dashboard" component={Dashboard} />
-      </SignedIn>
-      <SignedOut>
-        <Route path="/" component={Landing} />
-      </SignedOut>
+      <Route path="/">
+        <SignedOut>
+          <Landing />
+        </SignedOut>
+        <SignedIn>
+          <Dashboard />
+        </SignedIn>
+      </Route>
+      <Route path="/dashboard">
+        <SignedIn>
+          <Dashboard />
+        </SignedIn>
+        <SignedOut>
+          <Landing />
+        </SignedOut>
+      </Route>
+      <Route path="/checkout">
+        <SignedIn>
+          <Checkout />
+        </SignedIn>
+        <SignedOut>
+          <Landing />
+        </SignedOut>
+      </Route>
+      <Route path="/onboarding">
+        <SignedIn>
+          <Onboarding />
+        </SignedIn>
+        <SignedOut>
+          <Landing />
+        </SignedOut>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -42,16 +74,12 @@ function Router() {
 
 function App() {
   return (
-    <ClerkProvider 
-      publishableKey={PUBLISHABLE_KEY}
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/onboarding"
-    >
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignInUrl="/dashboard" afterSignUpUrl="/onboarding">
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" storageKey="intramural-ui-theme">
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <TooltipProvider>
+            <AppContent />
             <Toaster />
-            <Router />
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

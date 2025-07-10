@@ -67,7 +67,7 @@ NODE_ENV=production
 3. Copy your **Secret key** (sk_test_...) for `STRIPE_SECRET_KEY`
 
 #### Database Setup:
-1. Create a PostgreSQL database on [Neon](https://neon.tech) or similar
+1. Create a PostgreSQL database on [Supabase](https://supabase.com) or similar
 2. Copy the connection string for `DATABASE_URL`
 
 ## 🌐 Deployment Options
