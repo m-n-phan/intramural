@@ -17,6 +17,7 @@ import { Bell } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import type { Invite } from "@shared/schema";
 
 // Function to determine the current season based on month and year
 const getCurrentSeason = () => {
@@ -48,7 +49,7 @@ type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' 
 function Notifications() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: invites, isLoading } = useQuery({
+  const { data: invites, isLoading } = useQuery<Invite[]>({
     queryKey: ['/api/users/me/invites'],
   });
 
@@ -82,8 +83,8 @@ function Notifications() {
           <div className="grid gap-2">
             {isLoading ? (
               <p>Loading...</p>
-            ) : invites && (invites as any[]).length > 0 ? (
-              (invites as any[]).map((invite: any) => (
+            ) : invites && invites.length > 0 ? (
+              invites.map((invite: Invite) => (
                 <div key={invite.id} className="grid grid-cols-[1fr_auto] items-center gap-4">
                   <p>Invitation to join team {invite.teamId}</p>
                   <div className="space-x-2">

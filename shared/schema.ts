@@ -234,3 +234,14 @@ export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type Game = typeof games.$inferSelect;
 export type InsertGame = z.infer<typeof insertGameSchema>;
+
+export interface Invite {
+  id: number;
+  teamId: number;
+  userId: string;
+  type: 'invite' | 'request';
+  status: 'pending' | 'accepted' | 'declined';
+  invitedBy: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
