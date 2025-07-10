@@ -29,7 +29,6 @@ import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole
 import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { z } from "zod";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
-import express from "express";
 import { Webhook } from "svix";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -41,8 +40,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(ClerkExpressWithAuth());
 
-  // Webhook handler for Clerk
-  app.post('/api/webhooks/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
+  // Webhook handler for Clerk. "express.raw" middleware is mounted at the app
+  // level so the request body arrives as a Buffer here for signature
+  // verification.
+  app.post('/api/webhooks/clerk', async (req, res) => {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
     if (!WEBHOOK_SECRET) {
       throw new Error("Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
@@ -56,7 +57,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ message: "Error occured -- no svix headers" });
     }
 
-    const payload = req.body;
+    const payload = req.body as Buffer;
+    if (!Buffer.isBuffer(payload)) {
+      console.warn('Clerk webhook payload is not a Buffer');
+    }
     const wh = new Webhook(WEBHOOK_SECRET);
 
     let evt;
@@ -361,6 +365,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team invitation and request routes
+  app.post('/api/teams/:teamId/invites', requireCaptainOrAdmin, async (req, res) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { userId } = req.body;
+      const inviterId = authReq.auth.userId;
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const invitation = await storage.createTeamInvitation({
+        teamId,
+        userId,
+        type: 'invite',
+        invitedBy: inviterId,
+      });
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error creating team invitation:", error);
+      res.status(500).json({ message: "Failed to create team invitation" });
+    }
+  });
+
+  app.post('/api/teams/:teamId/requests', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = authReq.auth.userId;
+
+      const request = await storage.createTeamInvitation({
+        teamId,
+        userId,
+        type: 'request',
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating team join request:", error);
+      res.status(500).json({ message: "Failed to create team join request" });
+    }
+  });
+
+  app.get('/api/teams/:teamId/invites', requireCaptainOrAdmin, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const requests = await storage.getTeamJoinRequests(teamId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching team join requests:", error);
+      res.status(500).json({ message: "Failed to fetch team join requests" });
+    }
+  });
+
+  app.get('/api/users/me/invites', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const userId = authReq.auth.userId;
+      const invites = await storage.getUserTeamInvitations(userId);
+      res.json(invites);
+    } catch (error) {
+      console.error("Error fetching user team invitations:", error);
+      res.status(500).json({ message: "Failed to fetch user team invitations" });
+    }
+  });
+
+  app.put('/api/invites/:inviteId', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const inviteId = parseInt(req.params.inviteId);
+      const { status } = req.body;
+      const userId = authReq.auth.userId;
+
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const invitation = await storage.updateTeamInvitationStatus(inviteId, status, userId);
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error updating team invitation:", error);
+      res.status(500).json({ message: "Failed to update team invitation" });
+    }
+  });
+
+  app.put('/api/teams/:teamId/members/:userId', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = req.params.userId;
+      const { role } = req.body;
+
+      if (!['captain', 'player'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      const member = await storage.updateTeamMemberRole(teamId, userId, role);
+      res.json(member);
+    } catch (error) {
+      console.error("Error updating team member role:", error);
+      res.status(500).json({ message: "Failed to update team member role" });
+    }
+  });
+
+  app.put('/api/teams/:teamId/settings', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { profileImageUrl, captainOnlyInvites } = req.body;
+
+      const team = await storage.updateTeam(teamId, {
+        profileImageUrl,
+        captainOnlyInvites,
+      });
+      
+      res.json(team);
+    } catch (error) {
+      console.error("Error updating team settings:", error);
+      res.status(500).json({ message: "Failed to update team settings" });
+    }
+  });
+
   // Games routes
   app.get('/api/games', async (req, res) => {
     try {
@@ -403,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/games', async (req, res) => {
+  app.post('/api/games', requireRefereeOrAdmin, async (req, res) => {
     try {
       const gameData = insertGameSchema.parse(req.body);
       
@@ -444,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/games/:id', async (req, res) => {
+  app.put('/api/games/:id', requireRefereeOrAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const gameData = insertGameSchema.partial().parse(req.body);
@@ -499,7 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/games/:id', async (req, res) => {
+  app.delete('/api/games/:id', requireRefereeOrAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteGame(id);
@@ -536,8 +663,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount } = req.body;
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(parsedAmount * 100), // Convert to cents
         currency: "usd",
         metadata: {
           userId: (req as RequestWithAuth).auth.userId || 'unknown',

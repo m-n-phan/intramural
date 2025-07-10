@@ -14,6 +14,10 @@ import { Settings } from "@/components/dashboard/settings";
 import { Button } from "@/components/ui/button";
 import { UserButton, useUser } from "@clerk/clerk-react";
 import { Bell } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Invite } from "@shared/schema";
 
 // Function to determine the current season based on month and year
 const getCurrentSeason = () => {
@@ -42,12 +46,67 @@ const getCurrentSeason = () => {
 
 type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
+function Notifications() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { data: invites, isLoading } = useQuery<Invite[]>({
+    queryKey: ['/api/users/me/invites'],
+  });
+
+  const mutation = useMutation({
+    mutationFn: ({ inviteId, status }: { inviteId: number, status: 'accepted' | 'declined' }) =>
+      apiRequest("PUT", `/api/invites/${inviteId}`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me/invites'] });
+      toast({ title: "Success", description: "Invitation updated." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <Bell className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Invitations</h4>
+            <p className="text-sm text-muted-foreground">
+              Respond to your team invitations.
+            </p>
+          </div>
+          <div className="grid gap-2">
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : invites && invites.length > 0 ? (
+              invites.map((invite: Invite) => (
+                <div key={invite.id} className="grid grid-cols-[1fr_auto] items-center gap-4">
+                  <p>Invitation to join team {invite.teamId}</p>
+                  <div className="space-x-2">
+                    <Button size="sm" onClick={() => mutation.mutate({ inviteId: invite.id, status: 'accepted' })}>Accept</Button>
+                    <Button size="sm" variant="outline" onClick={() => mutation.mutate({ inviteId: invite.id, status: 'declined' })}>Decline</Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No new invitations.</p>
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function Dashboard() {
   const { isLoaded, isSignedIn } = useUser();
   const { toast } = useToast();
   const [activeView, setActiveView] = useState<DashboardView>('overview');
-
-  
 
   if (!isLoaded) {
     return (
@@ -94,9 +153,7 @@ export default function Dashboard() {
               <span className="hidden md:block text-muted-foreground">{getCurrentSeason()}</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="h-4 w-4" />
-              </Button>
+              <Notifications />
               <UserButton afterSignOutUrl="/" />
             </div>
           </div>
