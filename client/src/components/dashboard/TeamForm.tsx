@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
+type TeamFormData = Omit<Team, "id" | "captainId">;
+
 interface TeamFormProps {
-  onSubmit: (data: Omit<Team, "id">) => void;
+  onSubmit: (data: TeamFormData) => void;
   isPending: boolean;
   sports: Sport[] | undefined;
   onCancel: () => void;
@@ -15,12 +17,11 @@ interface TeamFormProps {
 }
 
 export function TeamForm({ onSubmit, isPending, sports, onCancel, submitButtonText = "Submit" }: TeamFormProps) {
-  const form = useForm<Omit<Team, "id">>({
-    resolver: zodResolver(insertTeamSchema),
+  const form = useForm<TeamFormData>({
+    resolver: zodResolver(insertTeamSchema.omit({ captainId: true })),
     defaultValues: {
       name: "",
       sportId: 0,
-      captainId: "", // This will be set in the parent component
       gender: "co-ed",
       division: "recreational",
       status: "active",

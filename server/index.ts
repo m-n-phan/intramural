@@ -67,8 +67,6 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-
-  
   const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
   server.listen(
     {
@@ -77,7 +75,9 @@ app.use((req, res, next) => {
       //reusePort: true,
     },
     () => {
+      const url = `http://localhost:${port}`;
       log(`serving on port ${port}`);
+      console.log(`🚀 Server is running at: ${url}`);
     }
   );
 })();

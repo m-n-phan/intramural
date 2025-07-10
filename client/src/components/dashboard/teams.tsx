@@ -24,25 +24,26 @@ export function Teams() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("all");
 
-  const { data: teams, isLoading } = useQuery<Team[]>({
+  const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ['/api/teams'],
   });
 
-  const { data: sports } = useQuery<Sport[]>({
+  const { data: sports, isLoading: sportsLoading } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const { data: teamMembers } = useQuery<TeamMember[]>({
+  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
     queryKey: ['/api/teams', selectedTeam?.id, 'members'],
     enabled: !!selectedTeam,
   });
 
-  const { data: typedUsers } = useQuery<User[]>({
+  const { data: typedUsers, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
 
   const filteredTeams = useMemo(() => {
-    return teams?.filter((team) => {
+    if (!teams) return [];
+    return teams.filter((team) => {
       const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSport = selectedSport === "all" || team.sportId.toString() === selectedSport;
       return matchesSearch && matchesSport;
@@ -70,7 +71,7 @@ export function Teams() {
     },
   });
 
-  const onSubmit = (data: Omit<Team, 'id'>) => {
+  const onSubmit = (data: Omit<Team, 'id' | 'captainId'>) => {
     const submitData = {
       ...data,
       sportId: Number(data.sportId),
@@ -131,7 +132,7 @@ export function Teams() {
     },
   });
 
-  if (isLoading) {
+  if (teamsLoading || sportsLoading || usersLoading) {
     return <div>Loading...</div>;
   }
 
@@ -182,7 +183,7 @@ export function Teams() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sports</SelectItem>
-                  {sports?.map((sport) => (
+                  {sports?.map((sport: Sport) => (
                     <SelectItem key={sport.id} value={sport.id.toString()}>
                       {sport.name}
                     </SelectItem>
@@ -226,7 +227,7 @@ export function Teams() {
                       </td>
                       <td className="py-4 px-6">
                         <Badge variant="outline">
-                          {sports?.find((s) => s.id === team.sportId)?.name || 'Unknown'}
+                          {sports?.find((s: Sport) => s.id === team.sportId)?.name || 'Unknown'}
                         </Badge>
                       </td>
                       <td className="py-4 px-6">
@@ -239,7 +240,7 @@ export function Teams() {
                       </td>
                       <td className="py-4 px-6">
                         <span className="text-foreground">
-                          {teamMembers?.filter(m => m.teamId === team.id).length || 0} players
+                          {teamMembers?.filter((m: TeamMember) => m.teamId === team.id).length || 0} players
                         </span>
                       </td>
                       <td className="py-4 px-6">
@@ -276,12 +277,12 @@ export function Teams() {
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No Teams Found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || selectedSport 
+                {searchTerm || (selectedSport && selectedSport !== 'all')
                   ? "No teams match your search criteria"
                   : "Get started by adding your first team"
                 }
               </p>
-              {!searchTerm && !selectedSport && (
+              {!searchTerm && !(selectedSport && selectedSport !== 'all') && (
                 <Button onClick={() => setShowAddDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Team
@@ -314,9 +315,9 @@ export function Teams() {
                   <SelectValue placeholder="Select a player to add" />
                 </SelectTrigger>
                 <SelectContent>
-                  {typedUsers?.filter((user) => 
-                    !teamMembers?.some((member) => member.userId === user.id)
-                  ).map((user) => (
+                  {typedUsers?.filter((user: User) => 
+                    !teamMembers?.some((member: TeamMember) => member.userId === user.id)
+                  ).map((user: User) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.firstName} {user.lastName} ({user.email})
                     </SelectItem>
@@ -347,8 +348,8 @@ export function Teams() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.isArray(teamMembers) && teamMembers.map((member) => {
-                      const memberUser = Array.isArray(typedUsers) ? typedUsers.find((u) => u.id === member.userId) : null;
+                    {teamMembers.map((member: TeamMember) => {
+                      const memberUser = typedUsers?.find((u: User) => u.id === member.userId);
                       return (
                         <TableRow key={member.id}>
                           <TableCell>

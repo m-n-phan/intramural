@@ -75,6 +75,7 @@ const CheckoutForm = () => {
 export default function Checkout() {
   const [clientSecret, setClientSecret] = useState("");
   const [amount, setAmount] = useState(75); // Default team fee
+  const { toast } = useToast();
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
@@ -85,8 +86,13 @@ export default function Checkout() {
       })
       .catch((error) => {
         console.error("Error creating payment intent:", error);
+        toast({
+          title: "Error",
+          description: "There was an issue initiating the payment process. Please try again.",
+          variant: "destructive",
+        });
       });
-  }, [amount]);
+  }, [amount, toast]);
 
   if (!clientSecret) {
     return (
