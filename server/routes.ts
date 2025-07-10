@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/games', async (req, res) => {
+  app.post('/api/games', requireRefereeOrAdmin, async (req, res) => {
     try {
       const gameData = insertGameSchema.parse(req.body);
       
@@ -571,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/games/:id', async (req, res) => {
+  app.put('/api/games/:id', requireRefereeOrAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const gameData = insertGameSchema.partial().parse(req.body);
@@ -626,7 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/games/:id', async (req, res) => {
+  app.delete('/api/games/:id', requireRefereeOrAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteGame(id);
