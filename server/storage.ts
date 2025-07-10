@@ -36,7 +36,7 @@ export interface IStorage {
   deleteSport(id: number): Promise<void>;
   
   // Team operations
-  getTeams(): Promise<Team[]>;
+  getTeams(options?: { search?: string; sportId?: number }): Promise<Team[]>;
   getTeamsBySport(sportId: number): Promise<Team[]>;
   getTeam(id: number): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
@@ -156,8 +156,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Team operations
-  async getTeams(): Promise<Team[]> {
-    return await db.select().from(teams).orderBy(asc(teams.name));
+  async getTeams(options: { search?: string; sportId?: number } = {}): Promise<Team[]> {
+    const { search, sportId } = options;
+    const conditions = [];
+    if (search) {
+      conditions.push(sql`LOWER(${teams.name}) LIKE ${'%' + search.toLowerCase() + '%'}`);
+    }
+    if (sportId) {
+      conditions.push(eq(teams.sportId, sportId));
+    }
+
+    const query = db.select().from(teams).orderBy(asc(teams.name));
+
+    if (conditions.length > 0) {
+      query.where(and(...conditions));
+    }
+
+    return await query;
   }
 
   async getTeamsBySport(sportId: number): Promise<Team[]> {

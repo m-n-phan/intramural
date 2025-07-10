@@ -145,10 +145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users', requireAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      res.json({ users });
     } catch (error) {
       console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
+      res.status(500).json({ message: "Failed to fetch users", users: [] });
     }
   });
 
@@ -236,7 +236,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teams routes
   app.get('/api/teams', async (req, res) => {
     try {
-      const teams = await storage.getTeams();
+      const { search, sportId } = req.query;
+      const teams = await storage.getTeams({
+        search: search as string | undefined,
+        sportId: sportId ? parseInt(sportId as string) : undefined,
+      });
       res.json(teams);
     } catch (error) {
       console.error("Error fetching teams:", error);
@@ -269,9 +273,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/teams', async (req, res) => {
+  app.post('/api/teams', ClerkExpressWithAuth(), async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    if (!authReq.auth.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     try {
-      const teamData = insertTeamSchema.parse(req.body);
+      const teamData = insertTeamSchema.parse({
+        ...req.body,
+        captainId: authReq.auth.userId,
+      });
       const team = await storage.createTeam(teamData);
       res.json(team);
     } catch (error) {

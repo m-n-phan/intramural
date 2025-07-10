@@ -47,16 +47,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [activeView, setActiveView] = useState<DashboardView>('overview');
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Please sign in.",
-        variant: "destructive",
-      });
-      // Redirect to landing page or sign-in page
-    }
-  }, [isSignedIn, isLoaded, toast]);
+  
 
   if (!isLoaded) {
     return (
