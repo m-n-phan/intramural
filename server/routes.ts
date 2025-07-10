@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(ClerkExpressWithAuth());
 
   // Webhook handler for Clerk
-  app.post('/api/webhooks/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
+  app.post('/api/webhooks/clerk', async (req, res) => {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
     if (!WEBHOOK_SECRET) {
       throw new Error("Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
@@ -57,6 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const payload = req.body;
+    console.log('Clerk webhook payload is buffer:', Buffer.isBuffer(payload));
     const wh = new Webhook(WEBHOOK_SECRET);
 
     let evt;

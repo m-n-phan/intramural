@@ -13,6 +13,8 @@ console.log(
 );
 console.log("------------------------------------");
 const app = express();
+// Use raw body for Clerk webhooks before JSON parsing
+app.use('/api/webhooks/clerk', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
