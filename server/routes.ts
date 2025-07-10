@@ -29,7 +29,6 @@ import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole
 import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { z } from "zod";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
-import express from "express";
 import { Webhook } from "svix";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -41,8 +40,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(ClerkExpressWithAuth());
 
-  // Webhook handler for Clerk
-  app.post('/api/webhooks/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
+  // Webhook handler for Clerk. "express.raw" middleware is mounted at the app
+  // level so the request body arrives as a Buffer here for signature
+  // verification.
+  app.post('/api/webhooks/clerk', async (req, res) => {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
     if (!WEBHOOK_SECRET) {
       throw new Error("Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
@@ -56,7 +57,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ message: "Error occured -- no svix headers" });
     }
 
-    const payload = req.body;
+    const payload = req.body as Buffer;
+    if (!Buffer.isBuffer(payload)) {
+      console.warn('Clerk webhook payload is not a Buffer');
+    }
     const wh = new Webhook(WEBHOOK_SECRET);
 
     let evt;

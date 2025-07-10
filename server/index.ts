@@ -13,6 +13,8 @@ console.log(
 );
 console.log("------------------------------------");
 const app = express();
+// Parse Clerk webhooks as raw buffers so signature verification succeeds
+app.use('/api/webhooks/clerk', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
