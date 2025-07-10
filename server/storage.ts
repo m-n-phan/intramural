@@ -3,6 +3,7 @@ import {
   sports,
   teams,
   teamMembers,
+  teamInvitations,
   games,
   type User,
   type UpsertUser,
@@ -47,7 +48,14 @@ export interface IStorage {
   getTeamMembers(teamId: number): Promise<TeamMember[]>;
   addTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   removeTeamMember(teamId: number, userId: string): Promise<void>;
-  
+  updateTeamMemberRole(teamId: number, userId: string, role: string): Promise<TeamMember>;
+
+  // Team invitation operations
+  createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<any>;
+  getTeamJoinRequests(teamId: number): Promise<any[]>;
+  getUserTeamInvitations(userId: string): Promise<any[]>;
+  updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<any>;
+
   // Game operations
   getGames(): Promise<Game[]>;
   getGamesBySport(sportId: number): Promise<Game[]>;
@@ -229,6 +237,53 @@ export class DatabaseStorage implements IStorage {
           eq(teamMembers.userId, userId)
         )
       );
+  }
+
+  async updateTeamMemberRole(teamId: number, userId: string, role: string): Promise<TeamMember> {
+    const [updatedMember] = await db
+      .update(teamMembers)
+      .set({ role })
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
+      .returning();
+    return updatedMember;
+  }
+
+  // Team invitation operations
+  async createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<any> {
+    const [newInvitation] = await db.insert(teamInvitations).values(invitation).returning();
+    return newInvitation;
+  }
+
+  async getTeamJoinRequests(teamId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(teamInvitations)
+      .where(and(eq(teamInvitations.teamId, teamId), eq(teamInvitations.type, 'request'), eq(teamInvitations.status, 'pending')));
+  }
+
+  async getUserTeamInvitations(userId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(teamInvitations)
+      .where(and(eq(teamInvitations.userId, userId), eq(teamInvitations.type, 'invite'), eq(teamInvitations.status, 'pending')));
+  }
+
+  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<any> {
+    const [updatedInvitation] = await db
+      .update(teamInvitations)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(teamInvitations.id, inviteId))
+      .returning();
+
+    if (status === 'accepted') {
+      await this.addTeamMember({
+        teamId: updatedInvitation.teamId,
+        userId: updatedInvitation.userId,
+        role: 'player',
+      });
+    }
+
+    return updatedInvitation;
   }
 
   // Game operations

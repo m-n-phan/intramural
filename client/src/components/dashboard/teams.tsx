@@ -13,6 +13,7 @@ import { Team, Sport, User, TeamMember } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamForm } from "./TeamForm";
+import { Link } from "wouter";
 
 export function Teams() {
   const { toast } = useToast();
@@ -66,6 +67,23 @@ export function Teams() {
       toast({
         title: "Error",
         description: error.message || "Failed to create team",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const requestToJoinMutation = useMutation({
+    mutationFn: (teamId: number) => apiRequest("POST", `/api/teams/${teamId}/requests`),
+    onSuccess: () => {
+      toast({
+        title: "Request Sent",
+        description: "Your request to join the team has been sent.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send request.",
         variant: "destructive",
       });
     },
@@ -210,65 +228,77 @@ export function Teams() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTeams.map((team) => (
-                    <tr key={team.id} className="border-b">
-                      <td className="py-4 px-6">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
-                            <Users className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-foreground">{team.name}</div>
-                            <div className="text-sm text-muted-foreground capitalize">
-                              {team.division}
+                  {filteredTeams.map((team) => {
+                    const isCaptain = team.captainId === typedUser?.id;
+                    const isMember = teamMembers?.some(m => m.teamId === team.id && m.userId === typedUser?.id);
+
+                    return (
+                      <tr key={team.id} className="border-b">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                              <Users className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{team.name}</div>
+                              <div className="text-sm text-muted-foreground capitalize">
+                                {team.division}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <Badge variant="outline">
-                          {sports?.find((s: Sport) => s.id === team.sportId)?.name || 'Unknown'}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6">
-                        <Badge variant="secondary">
-                          {team.gender === 'men' ? "Men's" : team.gender === 'women' ? "Women's" : "Co-ed"}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="capitalize text-foreground">{team.division}</span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-foreground">
-                          {teamMembers?.filter((m: TeamMember) => m.teamId === team.id).length || 0} players
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-foreground">
-                          {team.wins}-{team.losses}
-                          {(team.draws ?? 0) > 0 && `-${team.draws}`}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <Badge variant={team.status === 'active' ? 'default' : 'secondary'}>
-                          {team.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleViewTeam(team)}>
-                            View
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleManageRoster(team)}>
-                            Roster
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-4 px-6">
+                          <Badge variant="outline">
+                            {sports?.find((s: Sport) => s.id === team.sportId)?.name || 'Unknown'}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-6">
+                          <Badge variant="secondary">
+                            {team.gender === 'men' ? "Men's" : team.gender === 'women' ? "Women's" : "Co-ed"}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="capitalize text-foreground">{team.division}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-foreground">
+                            {teamMembers?.filter((m: TeamMember) => m.teamId === team.id).length || 0} players
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-foreground">
+                            {team.wins}-{team.losses}
+                            {(team.draws ?? 0) > 0 && `-${team.draws}`}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <Badge variant={team.status === 'active' ? 'default' : 'secondary'}>
+                            {team.status}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex space-x-2">
+                            {isCaptain ? (
+                              <Link href={`/dashboard/teams/${team.id}/settings`}>
+                                <Button variant="ghost" size="sm">Manage</Button>
+                              </Link>
+                            ) : isMember ? (
+                              <Button variant="ghost" size="sm" onClick={() => handleViewTeam(team)}>
+                                View
+                              </Button>
+                            ) : (
+                              <Button variant="ghost" size="sm" onClick={() => requestToJoinMutation.mutate(team.id)}>
+                                Request to Join
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

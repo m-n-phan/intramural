@@ -361,6 +361,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team invitation and request routes
+  app.post('/api/teams/:teamId/invites', requireCaptainOrAdmin, async (req, res) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { userId } = req.body;
+      const inviterId = authReq.auth.userId;
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const invitation = await storage.createTeamInvitation({
+        teamId,
+        userId,
+        type: 'invite',
+        invitedBy: inviterId,
+      });
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error creating team invitation:", error);
+      res.status(500).json({ message: "Failed to create team invitation" });
+    }
+  });
+
+  app.post('/api/teams/:teamId/requests', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = authReq.auth.userId;
+
+      const request = await storage.createTeamInvitation({
+        teamId,
+        userId,
+        type: 'request',
+      });
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating team join request:", error);
+      res.status(500).json({ message: "Failed to create team join request" });
+    }
+  });
+
+  app.get('/api/teams/:teamId/invites', requireCaptainOrAdmin, async (req: Request, res: Response) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const requests = await storage.getTeamJoinRequests(teamId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching team join requests:", error);
+      res.status(500).json({ message: "Failed to fetch team join requests" });
+    }
+  });
+
+  app.get('/api/users/me/invites', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const userId = authReq.auth.userId;
+      const invites = await storage.getUserTeamInvitations(userId);
+      res.json(invites);
+    } catch (error) {
+      console.error("Error fetching user team invitations:", error);
+      res.status(500).json({ message: "Failed to fetch user team invitations" });
+    }
+  });
+
+  app.put('/api/invites/:inviteId', async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuth;
+    try {
+      const inviteId = parseInt(req.params.inviteId);
+      const { status } = req.body;
+      const userId = authReq.auth.userId;
+
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const invitation = await storage.updateTeamInvitationStatus(inviteId, status, userId);
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error updating team invitation:", error);
+      res.status(500).json({ message: "Failed to update team invitation" });
+    }
+  });
+
+  app.put('/api/teams/:teamId/members/:userId', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const userId = req.params.userId;
+      const { role } = req.body;
+
+      if (!['captain', 'player'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      const member = await storage.updateTeamMemberRole(teamId, userId, role);
+      res.json(member);
+    } catch (error) {
+      console.error("Error updating team member role:", error);
+      res.status(500).json({ message: "Failed to update team member role" });
+    }
+  });
+
+  app.put('/api/teams/:teamId/settings', requireCaptainOrAdmin, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { profileImageUrl, captainOnlyInvites } = req.body;
+
+      const team = await storage.updateTeam(teamId, {
+        profileImageUrl,
+        captainOnlyInvites,
+      });
+      
+      res.json(team);
+    } catch (error) {
+      console.error("Error updating team settings:", error);
+      res.status(500).json({ message: "Failed to update team settings" });
+    }
+  });
+
   // Games routes
   app.get('/api/games', async (req, res) => {
     try {

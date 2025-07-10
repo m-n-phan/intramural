@@ -59,6 +59,8 @@ export const teams = pgTable("teams", {
   name: varchar("name", { length: 100 }).notNull(),
   sportId: integer("sport_id").references(() => sports.id).notNull(),
   captainId: varchar("captain_id").references(() => users.id).notNull(),
+  profileImageUrl: varchar("profile_image_url"),
+  captainOnlyInvites: boolean("captain_only_invites").default(true).notNull(),
   gender: varchar("gender", { length: 20 }).default("co-ed").notNull(), // men, women, co-ed
   division: varchar("division", { length: 50 }),
   status: varchar("status", { length: 20 }).default("active"), // active, pending, disbanded
@@ -79,6 +81,20 @@ export const teamMembers = pgTable("team_members", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   role: varchar("role", { length: 20 }).default("player"), // player, captain, co-captain
   joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+// Team invitations table
+export const teamInvitations = pgTable("team_invitations", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").references(() => teams.id, { onDelete: 'cascade' }).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  // "invite" = from team to user, "request" = from user to team
+  type: varchar("type", { enum: ["invite", "request"] }).notNull(),
+  status: varchar("status", { enum: ["pending", "accepted", "declined"] }).default("pending").notNull(),
+  // The user who initiated the action (e.g., the captain who sent the invite)
+  invitedBy: varchar("invited_by").references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Games table
@@ -103,6 +119,7 @@ export const games = pgTable("games", {
 export const usersRelations = relations(users, ({ many }) => ({
   captainedTeams: many(teams, { relationName: "captain" }),
   teamMemberships: many(teamMembers),
+  teamInvitations: many(teamInvitations),
 }));
 
 export const sportsRelations = relations(sports, ({ many }) => ({
@@ -121,6 +138,7 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
     relationName: "captain",
   }),
   members: many(teamMembers),
+  invitations: many(teamInvitations),
   homeGames: many(games, { relationName: "homeTeam" }),
   awayGames: many(games, { relationName: "awayTeam" }),
 }));
@@ -133,6 +151,22 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   user: one(users, {
     fields: [teamMembers.userId],
     references: [users.id],
+  }),
+}));
+
+export const teamInvitationsRelations = relations(teamInvitations, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamInvitations.teamId],
+    references: [teams.id],
+  }),
+  user: one(users, {
+    fields: [teamInvitations.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [teamInvitations.invitedBy],
+    references: [users.id],
+    relationName: 'inviter'
   }),
 }));
 
