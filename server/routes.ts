@@ -57,10 +57,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ message: "Error occured -- no svix headers" });
     }
 
-    const payload = req.body as Buffer;
-    if (!Buffer.isBuffer(payload)) {
-      console.warn('Clerk webhook payload is not a Buffer');
+    // Convert payload to string for webhook verification
+    let payload: string;
+    if (Buffer.isBuffer(req.body)) {
+      payload = req.body.toString();
+    } else if (typeof req.body === 'string') {
+      payload = req.body;
+    } else {
+      payload = JSON.stringify(req.body);
     }
+    
     const wh = new Webhook(WEBHOOK_SECRET);
 
     let evt;
