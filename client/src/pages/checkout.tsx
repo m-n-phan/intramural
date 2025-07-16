@@ -74,7 +74,7 @@ const CheckoutForm = () => {
 
 export default function Checkout() {
   const [clientSecret, setClientSecret] = useState("");
-  const [amount, setAmount] = useState(75); // Default team fee
+  const [amount] = useState(75); // Default team fee
   const { toast } = useToast();
 
   useEffect(() => {

@@ -7,7 +7,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,7 +21,7 @@ import {
   Zap
 } from "lucide-react";
 import { useLocation } from "wouter";
-import { Sport, User } from "@shared/schema";
+import { Sport } from "@shared/schema";
 
 interface OnboardingData {
   interests: string[];
@@ -163,8 +162,8 @@ export default function Onboarding() {
                     Hi {typedUser?.firstName || 'there'}!
                   </h3>
                   <p className="text-muted-foreground mb-6">
-                    We're excited to have you join our intramural sports community. 
-                    Let's personalize your experience to help you find the perfect teams and activities.
+                    We&apos;re excited to have you join our intramural sports community. 
+                    Let&apos;s personalize your experience to help you find the perfect teams and activities.
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
@@ -206,7 +205,7 @@ export default function Onboarding() {
                       >
                         <span>{sport.name}</span>
                         <Badge variant="secondary" className="text-xs">
-                          {sport.gender === 'men' ? "Men's" : sport.gender === 'women' ? "Women's" : "Co-ed"}
+                          {sport.gender === 'men' ? "Men&apos;s" : sport.gender === 'women' ? "Women&apos;s" : "Co-ed"}
                         </Badge>
                       </Label>
                     </div>
@@ -214,7 +213,7 @@ export default function Onboarding() {
                 </div>
                 {onboardingData.interests.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Don't worry, you can always change your interests later!
+                    Don&apos;t worry, you can always change your interests later!
                   </p>
                 )}
               </div>
@@ -283,7 +282,7 @@ export default function Onboarding() {
                   <CheckCircle className="h-8 w-8 text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">You're all set!</h3>
+                  <h3 className="text-xl font-semibold mb-2">You&apos;re all set!</h3>
                   <p className="text-muted-foreground mb-6">
                     Your profile has been created. You can now explore sports, join teams, and start playing!
                   </p>

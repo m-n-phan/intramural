@@ -1,13 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Trophy, Users, Calendar, MoreVertical } from "lucide-react";
+import { Plus, Trophy, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
@@ -174,8 +173,8 @@ export function Sports() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="men">Men's</SelectItem>
-                          <SelectItem value="women">Women's</SelectItem>
+                          <SelectItem value="men">Men&apos;s</SelectItem>
+                          <SelectItem value="women">Women&apos;s</SelectItem>
                           <SelectItem value="co-ed">Co-ed</SelectItem>
                         </SelectContent>
                       </Select>

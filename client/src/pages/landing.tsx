@@ -5,7 +5,6 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { 
   Calendar, 
   Smartphone, 
-  CreditCard, 
   TrendingUp, 
   Users, 
   Bell,
@@ -448,7 +447,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "Switching from IMleagues was the best decision we made. Student participation increased by 45% in our first semester."
+                  &quot;Switching from IMleagues was the best decision we made. Student participation increased by 45% in our first semester.&quot;
                 </p>
                 <div className="text-sm text-primary font-medium">State University</div>
               </CardContent>
@@ -466,7 +465,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "The mobile app is a game-changer. Students actually use it, and we've cut our support tickets by 60%."
+                  &quot;The mobile app is a game-changer. Students actually use it, and we&apos;ve cut our support tickets by 60%.&quot;
                 </p>
                 <div className="text-sm text-primary font-medium">Tech University</div>
               </CardContent>
@@ -484,7 +483,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "Migration was seamless. We were up and running in under a week, and the scheduling time savings are incredible."
+                  &quot;Migration was seamless. We were up and running in under a week, and the scheduling time savings are incredible.&quot;
                 </p>
                 <div className="text-sm text-primary font-medium">Community College</div>
               </CardContent>
@@ -738,9 +737,9 @@ export default function Landing() {
               
               <div className="bg-muted/50 rounded-lg p-6">
                 <h4 className="text-lg font-semibold text-foreground mb-4">
-                  "The migration from DoSportsEasy was incredibly smooth. 
+                  &quot;The migration from DoSportsEasy was incredibly smooth. 
                   The Intramural team handled everything and our students 
-                  love the new platform."
+                  love the new platform.&quot;
                 </h4>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">

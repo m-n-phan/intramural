@@ -3,14 +3,10 @@ import {
  text,
  varchar,
  timestamp,
- jsonb,
- index,
  serial,
  integer,
  decimal,
  boolean,
- uuid,
- primaryKey,
  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -20,13 +16,15 @@ import { relations } from "drizzle-orm";
 export const teamInvitationType = pgEnum('team_invitation_type', ['invite', 'request']);
 export const teamInvitationStatus = pgEnum('team_invitation_status', ['pending', 'accepted', 'declined']);
 
+export const userRoleEnum = pgEnum('user_role', ['admin', 'captain', 'player', 'referee']);
+
 export const users = pgTable("users", {
  id: varchar("id").primaryKey().notNull(),
  email: varchar("email").unique(),
  firstName: varchar("first_name"),
  lastName: varchar("last_name"),
  profileImageUrl: varchar("profile_image_url"),
- role: varchar("role", { length: 20 }).notNull().default("player"),
+ role: userRoleEnum("role").notNull().default("player"),
  stripeCustomerId: varchar("stripe_customer_id"),
  stripeSubscriptionId: varchar("stripe_subscription_id"),
  onboardingCompleted: boolean("onboarding_completed").default(false),
@@ -223,7 +221,7 @@ export const USER_ROLES = {
  REFEREE: 'referee'
 } as const;
 
-export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Sport = typeof sports.$inferSelect;

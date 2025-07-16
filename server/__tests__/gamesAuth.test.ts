@@ -1,12 +1,12 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
 import { registerRoutes } from '../routes';
 import { storage } from '../storage';
-import { USER_ROLES } from '../../shared/schema';
+import { USER_ROLES, User } from '../../shared/schema';
 
 vi.mock('@clerk/clerk-sdk-node', () => ({
-  ClerkExpressWithAuth: () => (req: any, _res: any, next: any) => {
+  ClerkExpressWithAuth: () => (req: Request, _res: Response, next: NextFunction) => {
     const userId = req.header('x-user-id');
     req.auth = { userId };
     next();
@@ -30,13 +30,13 @@ describe('game route authorization', () => {
     app = express();
     app.use(express.json());
 
-    vi.spyOn(storage, 'getUser').mockImplementation(async (id: string) => {
+    vi.spyOn(storage, 'getUser').mockImplementation(async (id: string): Promise<User | undefined> => {
       const role = userRoles[id] || USER_ROLES.PLAYER;
-      return { id, role } as any;
+      return { id, role } as User;
     });
-    vi.spyOn(storage, 'getTeam').mockResolvedValue({ division: 'A', gender: 'co-ed', sportId: 1 } as any);
-    vi.spyOn(storage, 'createGame').mockResolvedValue({ id: 1 } as any);
-    vi.spyOn(storage, 'updateGame').mockResolvedValue({ id: 1 } as any);
+    vi.spyOn(storage, 'getTeam').mockResolvedValue({ id: 1, name: 'test', sportId: 1, captainId: 'test', division: 'A', gender: 'co-ed' });
+    vi.spyOn(storage, 'createGame').mockResolvedValue({ id: 1, sportId: 1, homeTeamId: 1, awayTeamId: 2, scheduledAt: new Date() });
+    vi.spyOn(storage, 'updateGame').mockResolvedValue({ id: 1, sportId: 1, homeTeamId: 1, awayTeamId: 2, scheduledAt: new Date() });
     vi.spyOn(storage, 'deleteGame').mockResolvedValue();
 
     server = await registerRoutes(app);
@@ -88,13 +88,13 @@ describe('game update and delete authorization', () => {
     app = express();
     app.use(express.json());
 
-    vi.spyOn(storage, 'getUser').mockImplementation(async (id: string) => {
+    vi.spyOn(storage, 'getUser').mockImplementation(async (id: string): Promise<User | undefined> => {
       const role = userRoles[id] || USER_ROLES.PLAYER;
-      return { id, role } as any;
+      return { id, role } as User;
     });
-    vi.spyOn(storage, 'getTeam').mockResolvedValue({ division: 'A', gender: 'co-ed', sportId: 1 } as any);
-    vi.spyOn(storage, 'createGame').mockResolvedValue({ id: 1 } as any);
-    vi.spyOn(storage, 'updateGame').mockResolvedValue({ id: 1 } as any);
+    vi.spyOn(storage, 'getTeam').mockResolvedValue({ id: 1, name: 'test', sportId: 1, captainId: 'test', division: 'A', gender: 'co-ed' });
+    vi.spyOn(storage, 'createGame').mockResolvedValue({ id: 1, sportId: 1, homeTeamId: 1, awayTeamId: 2, scheduledAt: new Date() });
+    vi.spyOn(storage, 'updateGame').mockResolvedValue({ id: 1, sportId: 1, homeTeamId: 1, awayTeamId: 2, scheduledAt: new Date() });
     vi.spyOn(storage, 'deleteGame').mockResolvedValue();
 
     server = await registerRoutes(app);

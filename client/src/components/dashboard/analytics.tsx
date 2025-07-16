@@ -158,7 +158,7 @@ export function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-end justify-between space-x-2 p-4">
-              {monthlyStats.map((stat, index) => (
+              {monthlyStats.map((stat) => (
                 <div key={stat.month} className="flex flex-col items-center flex-1">
                   <div 
                     className="w-full bg-primary/20 rounded-t-sm mb-2 min-h-[20px]"
@@ -251,11 +251,11 @@ export function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {teams?.slice(0, 3).map((team, index: number) => (
+              {teams?.slice(0, 3).map((team) => (
                 <div key={team.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
-                      {index + 1}
+                      {1}
                     </span>
                     <span className="font-medium text-foreground">{team.name}</span>
                   </div>

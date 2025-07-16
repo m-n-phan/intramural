@@ -26,8 +26,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
-import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
-import { z } from "zod";
+import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES, User } from "@shared/schema";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import { Webhook } from "svix";
 
@@ -283,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/teams', ClerkExpressWithAuth(), async (req: Request, res: Response) => {
+  app.post('/api/teams', requireRole([USER_ROLES.ADMIN, USER_ROLES.CAPTAIN]), async (req: Request, res: Response) => {
     const authReq = req as RequestWithAuth;
     if (!authReq.auth.userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -301,21 +300,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/teams/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const teamData = insertTeamSchema.partial().parse(req.body);
-      const team = await storage.updateTeam(id, teamData);
-      res.json(team);
-    } catch (error) {
-      console.error("Error updating team:", error);
-      res.status(500).json({ message: "Failed to update team" });
-    }
-  });
+  interface RequestWithAuthAndUser extends Request {
+  auth: { userId: string; };
+  currentUser: User; // Assuming requireRole attaches the user
+}
 
-  app.delete('/api/teams/:id', async (req, res) => {
+// ...
+
+app.put('/api/teams/:id', requireCaptainOrAdmin, async (req: Request, res: Response) => {
+    const authReq = req as RequestWithAuthAndUser;
+    try {
+        const id = parseInt(req.params.id);
+        const teamToUpdate = await storage.getTeam(id);
+
+        if (!teamToUpdate) {
+            return res.status(404).json({ message: "Team not found" });
+        }
+
+        // Ownership Check: User must be an Admin OR the captain of this specific team.
+        if (authReq.currentUser.role !== USER_ROLES.ADMIN && teamToUpdate.captainId !== authReq.auth.userId) {
+            return res.status(403).json({ message: "Forbidden: You do not have permission to edit this team." });
+        }
+
+        const teamData = insertTeamSchema.partial().parse(req.body);
+        const team = await storage.updateTeam(id, teamData);
+        res.json(team);
+    } catch (error) {
+        console.error("Error updating team:", error);
+        res.status(500).json({ message: "Failed to update team" });
+    }
+});
+
+  app.delete('/api/teams/:id', requireCaptainOrAdmin, async (req, res) => {
+    const authReq = req as RequestWithAuthAndUser;
     try {
       const id = parseInt(req.params.id);
+      const teamToDelete = await storage.getTeam(id);
+
+      if (!teamToDelete) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      if (authReq.currentUser.role !== USER_ROLES.ADMIN && teamToDelete.captainId !== authReq.auth.userId) {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to delete this team." });
+      }
+
       await storage.deleteTeam(id);
       res.json({ message: "Team deleted successfully" });
     } catch (error) {
@@ -337,9 +366,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post('/api/teams/:id/members', requireCaptainOrAdmin, async (req, res) => {
+    const authReq = req as RequestWithAuthAndUser;
     try {
       const teamId = parseInt(req.params.id);
       const { userId } = req.body;
+
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      if (authReq.currentUser.role !== USER_ROLES.ADMIN && team.captainId !== authReq.auth.userId) {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to add members to this team." });
+      }
       
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
@@ -359,9 +398,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete('/api/teams/:teamId/members/:userId', requireCaptainOrAdmin, async (req, res) => {
+    const authReq = req as RequestWithAuthAndUser;
     try {
       const teamId = parseInt(req.params.teamId);
       const userId = req.params.userId;
+
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      if (authReq.currentUser.role !== USER_ROLES.ADMIN && team.captainId !== authReq.auth.userId) {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to remove members from this team." });
+      }
       
       await storage.removeTeamMember(teamId, userId);
       res.json({ message: "Team member removed successfully" });
@@ -373,11 +422,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Team invitation and request routes
   app.post('/api/teams/:teamId/invites', requireCaptainOrAdmin, async (req, res) => {
-    const authReq = req as RequestWithAuth;
+    const authReq = req as RequestWithAuthAndUser;
     try {
       const teamId = parseInt(req.params.teamId);
       const { userId } = req.body;
       const inviterId = authReq.auth.userId;
+
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      if (authReq.currentUser.role !== USER_ROLES.ADMIN && team.captainId !== authReq.auth.userId) {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to invite members to this team." });
+      }
 
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
@@ -440,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put('/api/invites/:inviteId', async (req: Request, res: Response) => {
-    const authReq = req as RequestWithAuth;
+    const authReq = req as RequestWithAuthAndUser;
     try {
       const inviteId = parseInt(req.params.inviteId);
       const { status } = req.body;
@@ -448,6 +506,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!['accepted', 'declined'].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const invitationToUpdate = await storage.getTeamInvitation(inviteId);
+
+      if (!invitationToUpdate) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      const team = await storage.getTeam(invitationToUpdate.teamId);
+
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const isCaptain = team.captainId === userId;
+      const isInvitedUser = invitationToUpdate.userId === userId;
+
+      if (authReq.currentUser.role !== USER_ROLES.ADMIN && !isCaptain && !isInvitedUser) {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to update this invitation." });
       }
 
       const invitation = await storage.updateTeamInvitationStatus(inviteId, status, userId);
@@ -644,7 +721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get('/api/analytics/overview', async (req, res) => {
+  app.get('/api/analytics/overview', requireAdmin, async (req, res) => {
     try {
       const [teamStats, participationStats, revenueStats] = await Promise.all([
         storage.getTeamStats(),

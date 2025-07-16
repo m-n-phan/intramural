@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_ROLES, User } from "@shared/schema";
+import { USER_ROLES } from "@shared/schema";
 import { Shield, Users, UserCheck, UserCog, Info } from "lucide-react";
 
 export function UserProfile() {

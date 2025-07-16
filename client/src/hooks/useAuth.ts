@@ -1,9 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { User } from '@shared/schema';
+import { User, USER_ROLES, UserRole } from '@shared/schema';
 
 async function fetchUser() {
   const response = await apiRequest("GET", "/api/auth/user");
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Don't throw for 401, it just means the user is not logged in.
+      return null;
+    }
+    throw new Error(`Failed to fetch user: ${response.statusText}`);
+  }
   return response.json();
 }
 
@@ -13,17 +20,30 @@ export const useAuth = () => {
     isLoading,
     isError,
     error,
-  } = useQuery<User, Error>({
+    isFetched,
+  } = useQuery<User | null, Error>({
     queryKey: ['user'],
     queryFn: fetchUser,
-    retry: 1, // Retry once on failure
-    refetchOnWindowFocus: false, // Optional: prevent refetching on window focus
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity, // User data is stable within a session
   });
+
+  const hasRole = (role: UserRole | UserRole[]) => {
+    if (!user) return false;
+    const rolesToCheck = Array.isArray(role) ? role : [role];
+    return rolesToCheck.includes(user.role as UserRole);
+  };
 
   return {
     user,
     loading: isLoading,
+    isLoaded: isFetched,
     error: isError ? error : null,
     isAuthenticated: !!user && !isLoading,
+    hasRole, // Expose the helper
+    isAdmin: user?.role === USER_ROLES.ADMIN, // Add convenience booleans
+    isCaptain: user?.role === USER_ROLES.CAPTAIN,
+    isReferee: user?.role === USER_ROLES.REFEREE,
   };
 };

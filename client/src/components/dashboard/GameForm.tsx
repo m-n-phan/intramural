@@ -1,12 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertGameSchema, Game, Team, Sport, InsertGame } from "@shared/schema";
+import { insertGameSchema, Team, Sport, InsertGame } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useMemo, useEffect } from "react";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GameFormProps {
   onSubmit: (data: Partial<InsertGame>) => void;
@@ -19,6 +20,7 @@ interface GameFormProps {
 }
 
 export function GameForm({ onSubmit, isPending, sports, teams, initialValues, onCancel, submitButtonText = "Submit" }: GameFormProps) {
+  const { isAdmin } = useAuth();
   const form = useForm<Partial<InsertGame>>({
     resolver: zodResolver(insertGameSchema.partial()),
     defaultValues: initialValues || {
@@ -72,7 +74,7 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
           render={({ field }) => (
             <FormItem>
               <FormLabel>Sport</FormLabel>
-              <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""}>
+              <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""} disabled={!isAdmin}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a sport" />
@@ -96,15 +98,15 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gender Category</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? ""}>
+              <Select onValueChange={field.onChange} value={field.value ?? ""} disabled={!isAdmin}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender category" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="men">Men's</SelectItem>
-                  <SelectItem value="women">Women's</SelectItem>
+                  <SelectItem value="men">Men&apos;s</SelectItem>
+                  <SelectItem value="women">Women&apos;s</SelectItem>
                   <SelectItem value="co-ed">Co-ed</SelectItem>
                 </SelectContent>
               </Select>
@@ -129,7 +131,7 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Home Team</FormLabel>
-                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""}>
+                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""} disabled={!isAdmin}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select home team" />
@@ -153,7 +155,7 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Away Team</FormLabel>
-                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""}>
+                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() ?? ""} disabled={!isAdmin}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select away team" />
@@ -195,6 +197,7 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
                   {...field} 
                   value={field.value ? format(new Date(field.value), "yyyy-MM-dd'T'HH:mm") : ""} 
                   onChange={(e) => field.onChange(new Date(e.target.value))}
+                  disabled={!isAdmin}
                 />
               </FormControl>
               <FormMessage />
@@ -208,7 +211,33 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
             <FormItem>
               <FormLabel>Venue</FormLabel>
               <FormControl>
-                <Input placeholder="Court 1, Gym 2, etc." {...field} value={field.value ?? ""} />
+                <Input placeholder="Court 1, Gym 2, etc." {...field} value={field.value ?? ""} disabled={!isAdmin} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="homeScore"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Home Score</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} value={field.value ?? ""} onChange={e => field.onChange(parseInt(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="awayScore"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Away Score</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} value={field.value ?? ""} onChange={e => field.onChange(parseInt(e.target.value))} />
               </FormControl>
               <FormMessage />
             </FormItem>

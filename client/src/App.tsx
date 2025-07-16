@@ -20,7 +20,7 @@ if (!PUBLISHABLE_KEY) {
 }
 
 function AppContent() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const [location, setLocation] = useLocation();
 
   useEffect(() => {

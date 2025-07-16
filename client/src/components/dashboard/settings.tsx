@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,9 +18,7 @@ import {
   Users, 
   UserCheck, 
   UserCog, 
-  Settings as SettingsIcon,
   Bell,
-  Mail,
   Moon,
   Sun,
   Globe,
@@ -28,7 +26,6 @@ import {
   CreditCard
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-import { User as UserType } from "@shared/schema";
 
 export function Settings() {
   const { user: typedUser } = useAuth();

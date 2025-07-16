@@ -33,7 +33,7 @@ export function Teams() {
     queryKey: ['/api/sports'],
   });
 
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
+  const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ['/api/teams', selectedTeam?.id, 'members'],
     enabled: !!selectedTeam,
   });

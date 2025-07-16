@@ -6,11 +6,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/hooks/useAuth";
 
 export function TeamSettings() {
+  const { user, isAdmin } = useAuth();
   // Mock data - replace with API calls
   const team = {
     name: "The Mighty Ducks",
+    captainId: "1", // Mock captain ID
     profileImageUrl: "https://github.com/shadcn.png",
     captainOnlyInvites: true,
   };
@@ -26,12 +29,14 @@ export function TeamSettings() {
     { id: "5", name: "Les Averman", avatar: "https://github.com/shadcn.png" },
   ];
 
+  const isCaptain = team.captainId === user?.id;
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Team Profile</CardTitle>
-          <CardDescription>Update your team's profile picture and name.</CardDescription>
+          <CardDescription>Update your team&apos;s profile picture and name.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -40,7 +45,7 @@ export function TeamSettings() {
               <AvatarFallback>MD</AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <Input type="file" />
+              <Input type="file" disabled={!isAdmin && !isCaptain} />
               <p className="text-sm text-muted-foreground">Upload a new profile picture.</p>
             </div>
           </div>
@@ -73,16 +78,18 @@ export function TeamSettings() {
                   </TableCell>
                   <TableCell>{member.role}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">...</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>Promote to Captain</DropdownMenuItem>
-                        <DropdownMenuItem>Demote to Player</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-500">Remove from Team</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {(isAdmin || isCaptain) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">...</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>Promote to Captain</DropdownMenuItem>
+                          <DropdownMenuItem>Demote to Player</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-500">Remove from Team</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -106,10 +113,12 @@ export function TeamSettings() {
                 </Avatar>
                 <span>{request.name}</span>
               </div>
-              <div className="space-x-2">
-                <Button size="sm">Accept</Button>
-                <Button size="sm" variant="outline">Decline</Button>
-              </div>
+              {(isAdmin || isCaptain) && (
+                <div className="space-x-2">
+                  <Button size="sm">Accept</Button>
+                  <Button size="sm" variant="outline">Decline</Button>
+                </div>
+              )}
             </div>
           ))}
         </CardContent>
@@ -131,7 +140,7 @@ export function TeamSettings() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-2">
-            <Switch id="captain-invites" checked={team.captainOnlyInvites} />
+            <Switch id="captain-invites" checked={team.captainOnlyInvites} disabled={!isAdmin && !isCaptain} />
             <Label htmlFor="captain-invites">Only captains can invite members</Label>
           </div>
         </CardContent>

@@ -81,8 +81,8 @@ export function TeamForm({ onSubmit, isPending, sports, onCancel, submitButtonTe
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="men">Men's</SelectItem>
-                  <SelectItem value="women">Women's</SelectItem>
+                  <SelectItem value="men's">Men&apos;s</SelectItem>
+                  <SelectItem value="women's">Women&apos;s</SelectItem>
                   <SelectItem value="co-ed">Co-ed</SelectItem>
                 </SelectContent>
               </Select>

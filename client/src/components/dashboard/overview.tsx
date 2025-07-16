@@ -73,7 +73,7 @@ export function Overview() {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">Dashboard Overview</h2>
         <p className="text-muted-foreground">
-          Welcome back! Here's what's happening with your intramural program.
+          Welcome back! Here&apos;s what&apos;s happening with your intramural program.
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, RequestHandler } from "express";
 import { USER_ROLES, UserRole, User } from "@shared/schema";
 import { storage } from "./storage";
 

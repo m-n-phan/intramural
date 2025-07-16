@@ -17,7 +17,7 @@ import {
   type InsertGame,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, sql, count } from "drizzle-orm";
+import { eq, desc, asc, and, sql, count } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -51,10 +51,10 @@ export interface IStorage {
   updateTeamMemberRole(teamId: number, userId: string, role: string): Promise<TeamMember>;
 
   // Team invitation operations
-  createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<any>;
-  getTeamJoinRequests(teamId: number): Promise<any[]>;
-  getUserTeamInvitations(userId: string): Promise<any[]>;
-  updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<any>;
+  createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<unknown>;
+  getTeamJoinRequests(teamId: number): Promise<unknown[]>;
+  getUserTeamInvitations(userId: string): Promise<unknown[]>;
+  updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<unknown>;
 
   // Game operations
   getGames(): Promise<Game[]>;
@@ -249,26 +249,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Team invitation operations
-  async createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<any> {
+  async createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<unknown> {
     const [newInvitation] = await db.insert(teamInvitations).values(invitation).returning();
     return newInvitation;
   }
 
-  async getTeamJoinRequests(teamId: number): Promise<any[]> {
+  async getTeamJoinRequests(teamId: number): Promise<unknown[]> {
     return await db
       .select()
       .from(teamInvitations)
       .where(and(eq(teamInvitations.teamId, teamId), eq(teamInvitations.type, 'request'), eq(teamInvitations.status, 'pending')));
   }
 
-  async getUserTeamInvitations(userId: string): Promise<any[]> {
+  async getUserTeamInvitations(userId: string): Promise<unknown[]> {
     return await db
       .select()
       .from(teamInvitations)
       .where(and(eq(teamInvitations.userId, userId), eq(teamInvitations.type, 'invite'), eq(teamInvitations.status, 'pending')));
   }
 
-  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<any> {
+  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<unknown> {
     const [updatedInvitation] = await db
       .update(teamInvitations)
       .set({ status, updatedAt: new Date() })
