@@ -26,7 +26,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
-import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES, User } from "@shared/schema";
+import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES, User, Invite } from "@shared/schema";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import { Webhook } from "svix";
 
@@ -508,7 +508,7 @@ app.put('/api/teams/:id', requireCaptainOrAdmin, async (req: Request, res: Respo
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const invitationToUpdate = await storage.getTeamInvitation(inviteId);
+      const invitationToUpdate: Invite | undefined = await storage.getTeamInvitation(inviteId);
 
       if (!invitationToUpdate) {
         return res.status(404).json({ message: "Invitation not found" });

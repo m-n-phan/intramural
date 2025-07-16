@@ -13,8 +13,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
-
 interface SidebarProps {
   activeView: string;
   setActiveView: (view: DashboardView) => void;
@@ -49,7 +47,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
                   key={item.id}
                   variant={activeView === item.id ? "default" : "ghost"}
                   className="w-full justify-start"
-                  onClick={() => setActiveView(item.id as DashboardView)}
+                  onClick={() => setActiveView(item.id)}
                 >
                   <Icon className="mr-3 h-4 w-4" />
                   {item.label}

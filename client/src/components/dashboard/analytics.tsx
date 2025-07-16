@@ -184,7 +184,7 @@ export function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {participationBySport.slice(0, 5).map((sport, index) => (
+              {participationBySport.slice(0, 5).map((sport) => (
                 <div key={sport.name} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">

@@ -33,7 +33,6 @@ interface OnboardingData {
 export default function Onboarding() {
   const { user: typedUser } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
@@ -45,10 +44,6 @@ export default function Onboarding() {
 
   const { data: sports } = useQuery({
     queryKey: ['/api/sports'],
-  });
-
-  const { data: teams } = useQuery({
-    queryKey: ['/api/teams'],
   });
 
   const completeOnboardingMutation = useMutation({
@@ -108,7 +103,7 @@ export default function Onboarding() {
             Welcome to Intramural!
           </h1>
           <p className="text-muted-foreground mb-6">
-            Let's get you set up to join the action
+            Let&apos;s get you set up to join the action
           </p>
           <Progress value={progress} className="h-2" />
           <div className="flex justify-center mt-4">
@@ -145,7 +140,7 @@ export default function Onboarding() {
               <span>
                 {currentStep === 1 && "Welcome to the Platform"}
                 {currentStep === 2 && "What sports interest you?"}
-                {currentStep === 3 && "What's your experience level?"}
+                {currentStep === 3 && "What&apos;s your experience level?"}
                 {currentStep === 4 && "When are you available?"}
                 {currentStep === 5 && "All set!"}
               </span>

@@ -237,7 +237,7 @@ export default function Landing() {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">Offline Capabilities</h3>
                 <p className="text-muted-foreground">
-                  Works even when campus WiFi doesn't. Students can check scores and enter results offline.
+                  Works even when campus WiFi doesn&apos;t. Students can check scores and enter results offline.
                 </p>
               </CardContent>
             </Card>
@@ -639,8 +639,8 @@ export default function Landing() {
                 Migration from any platform included
               </h3>
               <p className="text-muted-foreground">
-                Whether you're coming from IMleagues, DoSportsEasy, Fusion Play, or any other platform, 
-                we'll handle the complete migration at no extra cost.
+                Whether you&apos;re coming from IMleagues, DoSportsEasy, Fusion Play, or any other platform, 
+                we&apos;ll handle the complete migration at no extra cost.
               </p>
             </div>
           </div>
@@ -705,7 +705,7 @@ export default function Landing() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  What's included in migration:
+                  What&apos;s included in migration:
                 </h3>
                 <ul className="space-y-3 text-muted-foreground">
                   <li className="flex items-start">
@@ -756,7 +756,7 @@ export default function Landing() {
           
           <div className="text-center mt-12">
             <p className="text-lg text-muted-foreground mb-6">
-              Ready to make the switch? Let's talk about your migration.
+              Ready to make the switch? Let&apos;s talk about your migration.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-primary hover:bg-primary/90">

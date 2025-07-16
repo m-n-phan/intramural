@@ -42,7 +42,7 @@ function Notifications() {
       queryClient.invalidateQueries({ queryKey: ['/api/users/me/invites'] });
       toast({ title: "Success", description: "Invitation updated." });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });

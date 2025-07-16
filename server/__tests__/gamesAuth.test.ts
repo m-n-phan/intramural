@@ -4,6 +4,7 @@ import request from 'supertest';
 import { registerRoutes } from '../routes';
 import { storage } from '../storage';
 import { USER_ROLES, User } from '../../shared/schema';
+import { Server } from 'http';
 
 vi.mock('@clerk/clerk-sdk-node', () => ({
   ClerkExpressWithAuth: () => (req: Request, _res: Response, next: NextFunction) => {
@@ -24,7 +25,7 @@ process.env.STRIPE_SECRET_KEY = 'sk_test';
 describe('game route authorization', () => {
   const userRoles: Record<string, string> = {};
   let app: express.Express;
-  let server: any;
+  let server: Server;
 
   beforeEach(async () => {
     app = express();
@@ -82,7 +83,7 @@ describe('game route authorization', () => {
 describe('game update and delete authorization', () => {
   const userRoles: Record<string, string> = {};
   let app: express.Express;
-  let server: any;
+  let server: Server;
 
   beforeEach(async () => {
     app = express();

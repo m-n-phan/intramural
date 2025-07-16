@@ -80,7 +80,7 @@ export function Teams() {
         description: "Your request to join the team has been sent.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message || "Failed to send request.",
@@ -103,11 +103,6 @@ export function Teams() {
       title: "Team Details",
       description: `Viewing details for ${team.name}`,
     });
-  };
-
-  const handleManageRoster = (team: Team) => {
-    setSelectedTeam(team);
-    setShowRosterDialog(true);
   };
 
   const addTeamMemberMutation = useMutation({

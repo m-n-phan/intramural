@@ -15,6 +15,8 @@ import {
   type InsertTeamMember,
   type Game,
   type InsertGame,
+  type UserRole,
+  type Invite,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, sql, count } from "drizzle-orm";
@@ -25,7 +27,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
-  updateUserRole(userId: string, role: string): Promise<User>;
+  updateUserRole(userId: string, role: UserRole): Promise<User>;
   updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User>;
   getAllUsers(): Promise<User[]>;
   
@@ -51,10 +53,11 @@ export interface IStorage {
   updateTeamMemberRole(teamId: number, userId: string, role: string): Promise<TeamMember>;
 
   // Team invitation operations
-  createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<unknown>;
-  getTeamJoinRequests(teamId: number): Promise<unknown[]>;
-  getUserTeamInvitations(userId: string): Promise<unknown[]>;
-  updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<unknown>;
+  createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<Invite>;
+  getTeamInvitation(id: number): Promise<Invite | undefined>;
+  getTeamJoinRequests(teamId: number): Promise<Invite[]>;
+  getUserTeamInvitations(userId: string): Promise<Invite[]>;
+  updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<Invite>;
 
   // Game operations
   getGames(): Promise<Game[]>;
@@ -107,7 +110,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserRole(userId: string, role: string): Promise<User> {
+  async updateUserRole(userId: string, role: UserRole): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ 
@@ -249,26 +252,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Team invitation operations
-  async createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<unknown> {
+  async createTeamInvitation(invitation: { teamId: number; userId: string; type: 'invite' | 'request'; invitedBy?: string }): Promise<Invite> {
     const [newInvitation] = await db.insert(teamInvitations).values(invitation).returning();
     return newInvitation;
   }
 
-  async getTeamJoinRequests(teamId: number): Promise<unknown[]> {
-    return await db
-      .select()
-      .from(teamInvitations)
-      .where(and(eq(teamInvitations.teamId, teamId), eq(teamInvitations.type, 'request'), eq(teamInvitations.status, 'pending')));
+  async getTeamInvitation(id: number): Promise<Invite | undefined> {
+    const [invitation] = await db.select().from(teamInvitations).where(eq(teamInvitations.id, id));
+    return invitation;
   }
 
-  async getUserTeamInvitations(userId: string): Promise<unknown[]> {
-    return await db
+  async getTeamJoinRequests(teamId: number): Promise<Invite[]> {
+    return (await db
       .select()
       .from(teamInvitations)
-      .where(and(eq(teamInvitations.userId, userId), eq(teamInvitations.type, 'invite'), eq(teamInvitations.status, 'pending')));
+      .where(and(eq(teamInvitations.teamId, teamId), eq(teamInvitations.type, 'request'), eq(teamInvitations.status, 'pending')))) as Invite[];
   }
 
-  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<unknown> {
+  async getUserTeamInvitations(userId: string): Promise<Invite[]> {
+    return (await db
+      .select()
+      .from(teamInvitations)
+      .where(and(eq(teamInvitations.userId, userId), eq(teamInvitations.type, 'invite'), eq(teamInvitations.status, 'pending')))) as Invite[];
+  }
+
+  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<Invite> {
     const [updatedInvitation] = await db
       .update(teamInvitations)
       .set({ status, updatedAt: new Date() })
@@ -283,7 +291,7 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
-    return updatedInvitation;
+    return updatedInvitation as Invite;
   }
 
   // Game operations
@@ -378,3 +386,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+

@@ -24,9 +24,9 @@ app.use((req, res, next) => {
   let capturedJsonResponse: Record<string, unknown> | undefined = undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson, ...args: unknown[]) {
+  res.json = function (bodyJson) {
     capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+    return originalResJson.call(res, bodyJson);
   };
 
   res.on("finish", () => {

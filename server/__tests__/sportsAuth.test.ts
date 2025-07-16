@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { registerRoutes } from '../../routes';
-import { storage } from '../../storage';
-import { users, sports } from '../../../shared/schema';
+import { registerRoutes } from '../routes';
+import { storage } from '../storage';
+import { users, sports } from '../../shared/schema';
 
-vi.mock('../../storage');
+vi.mock('../storage');
 vi.mock('@clerk/clerk-sdk-node', () => ({
   ClerkExpressWithAuth: () => (req, res, next) => {
     req.auth = { userId: 'user_2jciVA3sAWwS8wR4m3mJmYgB3gE' };
