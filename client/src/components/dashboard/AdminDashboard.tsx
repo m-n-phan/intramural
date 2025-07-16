@@ -6,10 +6,10 @@ import { Payments } from "./payments";
 import { RoleManagement } from "./role-management";
 import { Sports } from "./sports";
 
-type AdminView = 'overview' | 'sports' | 'analytics' | 'payments' | 'roles';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 export default function AdminDashboard() {
-    const [activeView, setActiveView] = useState<AdminView>('overview');
+    const [activeView, setActiveView] = useState<DashboardView>('overview');
 
     const renderView = () => {
         switch (activeView) {

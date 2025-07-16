@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import request from 'supertest';
 import { registerRoutes } from '../routes';
 import { storage } from '../storage';
-import { users, sports } from '../../shared/schema';
+import type { User, Sport } from '../../shared/schema';
 
 vi.mock('../storage');
 vi.mock('@clerk/clerk-sdk-node', () => ({
-  ClerkExpressWithAuth: () => (req, res, next) => {
+  ClerkExpressWithAuth: () => (req: Request, res: Response, next: NextFunction) => {
     req.auth = { userId: 'user_2jciVA3sAWwS8wR4m3mJmYgB3gE' };
     next();
   },
@@ -18,10 +19,10 @@ app.use(express.json());
 registerRoutes(app);
 
 describe('Sports Routes Auth', () => {
-  let mockUser;
+  let mockUser: User;
 
   beforeEach(() => {
-    mockUser = { ...users[0], id: 'user_2jciVA3sAWwS8wR4m3mJmYgB3gE' };
+    mockUser = { id: 'user_2jciVA3sAWwS8wR4m3mJmYgB3gE', role: 'player', email: 'test@test.com', firstName: 'test', lastName: 'test', profileImageUrl: null, stripeCustomerId: null, stripeSubscriptionId: null, onboardingCompleted: false, interests: [], experience: null, availability: null, notifications: true, createdAt: new Date(), updatedAt: new Date() };
     vi.spyOn(storage, 'getUser').mockResolvedValue(mockUser);
   });
 
@@ -39,7 +40,8 @@ describe('Sports Routes Auth', () => {
 
   it('should allow an admin to create a sport', async () => {
     mockUser.role = 'admin';
-    vi.spyOn(storage, 'createSport').mockResolvedValue({ ...sports[0], id: 1, name: 'Test Sport' });
+    const mockSport: Sport = { id: 1, name: 'Test Sport', description: null, gender: 'co-ed', maxTeams: null, maxPlayersPerTeam: null, minPlayersPerTeam: null, teamFee: null, registrationDeadline: null, startDate: null, endDate: null, status: 'active', createdAt: new Date(), updatedAt: new Date() };
+    vi.spyOn(storage, 'createSport').mockResolvedValue(mockSport);
     const response = await request(app)
       .post('/api/sports')
       .send({ name: 'Test Sport' });
@@ -56,7 +58,8 @@ describe('Sports Routes Auth', () => {
 
   it('should allow an admin to update a sport', async () => {
     mockUser.role = 'admin';
-    vi.spyOn(storage, 'updateSport').mockResolvedValue({ ...sports[0], id: 1, name: 'New Name' });
+    const mockSport: Sport = { id: 1, name: 'New Name', description: null, gender: 'co-ed', maxTeams: null, maxPlayersPerTeam: null, minPlayersPerTeam: null, teamFee: null, registrationDeadline: null, startDate: null, endDate: null, status: 'active', createdAt: new Date(), updatedAt: new Date() };
+    vi.spyOn(storage, 'updateSport').mockResolvedValue(mockSport);
     const response = await request(app)
       .put('/api/sports/1')
       .send({ name: 'New Name' });

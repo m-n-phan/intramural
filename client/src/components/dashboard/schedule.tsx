@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Calendar, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Game, Team, Sport, InsertGame } from "@shared/schema";
+import type { Game, Team, Sport, InsertGame } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { format, addMonths, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -253,7 +253,7 @@ export function Schedule() {
                 <div key={date}>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3">{format(new Date(date), 'EEEE, MMMM dd, yyyy')}</h4>
                   <div className="space-y-3">
-                    {(dateGames as Game[]).map((game) => (
+                    {(dateGames).map((game) => (
                       <div key={game.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                         <div className="flex items-center space-x-4">
                           <div className="text-center">

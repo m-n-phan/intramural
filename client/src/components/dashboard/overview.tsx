@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Gamepad2, TrendingUp, DollarSign, Trophy } from "lucide-react";
-import { Game } from "@shared/schema";
-import { AnalyticsOverview } from "./analytics";
+import type { Game } from "@shared/schema";
+import type { AnalyticsOverview } from "./analytics";
 
 export function Overview() {
   const { data: analytics, isLoading } = useQuery<AnalyticsOverview>({

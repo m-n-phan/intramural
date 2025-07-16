@@ -276,7 +276,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(teamInvitations.userId, userId), eq(teamInvitations.type, 'invite'), eq(teamInvitations.status, 'pending')))) as Invite[];
   }
 
-  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined', userId: string): Promise<Invite> {
+  async updateTeamInvitationStatus(inviteId: number, status: 'accepted' | 'declined'): Promise<Invite> {
     const [updatedInvitation] = await db
       .update(teamInvitations)
       .set({ status, updatedAt: new Date() })

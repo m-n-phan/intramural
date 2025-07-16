@@ -13,7 +13,7 @@ import { ClerkProvider, SignedIn, SignedOut, useUser } from "@clerk/clerk-react"
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");

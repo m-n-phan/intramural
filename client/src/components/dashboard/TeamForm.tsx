@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertTeamSchema, Team, Sport } from "@shared/schema";
+import type { Team, Sport } from "@shared/schema";
+import { insertTeamSchema } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +31,7 @@ export function TeamForm({ onSubmit, isPending, sports, onCancel, submitButtonTe
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"

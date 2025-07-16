@@ -21,7 +21,7 @@ import {
   Zap
 } from "lucide-react";
 import { useLocation } from "wouter";
-import { Sport } from "@shared/schema";
+import type { Sport } from "@shared/schema";
 
 interface OnboardingData {
   interests: string[];

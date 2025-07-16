@@ -1,5 +1,6 @@
-import { Request, RequestHandler } from "express";
-import { USER_ROLES, UserRole, User } from "@shared/schema";
+import type { Request, RequestHandler } from "express";
+import type { UserRole, User } from "@shared/schema";
+import { USER_ROLES } from "@shared/schema";
 import { storage } from "./storage";
 
 interface AuthenticatedRequest extends Request {
@@ -29,7 +30,7 @@ export const requireRole = (requiredRoles: UserRole | UserRole[]): RequestHandle
       }
 
       const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-      if (!roles.includes(user.role as UserRole)) {
+      if (!roles.includes(user.role)) {
         return res.status(403).json({ 
           message: `Access denied. Required role: ${roles.join(' or ')}. Current role: ${user.role}` 
         });

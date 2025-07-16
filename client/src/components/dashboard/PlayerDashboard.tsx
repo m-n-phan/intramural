@@ -6,10 +6,10 @@ import { Standings } from "./standings";
 import { Settings } from "./settings";
 import { MobileNav } from "./mobile-nav";
 
-type PlayerView = 'teams' | 'schedule' | 'standings' | 'settings';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
 
 export default function PlayerDashboard() {
-    const [activeView, setActiveView] = useState<PlayerView>('teams');
+    const [activeView, setActiveView] = useState<DashboardView>('teams');
 
     const renderView = () => {
         switch (activeView) {

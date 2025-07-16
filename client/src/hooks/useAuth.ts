@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { User, USER_ROLES, UserRole } from '@shared/schema';
+import type { User, UserRole } from '@shared/schema';
+import { USER_ROLES } from '@shared/schema';
 
 async function fetchUser() {
   const response = await apiRequest("GET", "/api/auth/user");
@@ -32,7 +33,7 @@ export const useAuth = () => {
   const hasRole = (role: UserRole | UserRole[]) => {
     if (!user) return false;
     const rolesToCheck = Array.isArray(role) ? role : [role];
-    return rolesToCheck.includes(user.role as UserRole);
+    return rolesToCheck.includes(user.role);
   };
 
   return {

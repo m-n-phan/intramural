@@ -9,7 +9,7 @@ import { Plus, Users, Search, MoreVertical } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Team, Sport, User, TeamMember } from "@shared/schema";
+import type { Team, Sport, User, TeamMember } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamForm } from "./TeamForm";
@@ -21,7 +21,6 @@ export function Teams() {
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showRosterDialog, setShowRosterDialog] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("all");
 
@@ -34,8 +33,7 @@ export function Teams() {
   });
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
-    queryKey: ['/api/teams', selectedTeam?.id, 'members'],
-    enabled: !!selectedTeam,
+    queryKey: ['/api/teams', 'members'],
   });
 
   const { data: typedUsers, isLoading: usersLoading } = useQuery<User[]>({
@@ -56,7 +54,7 @@ export function Teams() {
       return await apiRequest("POST", "/api/teams", data);
     },
     onSuccess: () => {
-      toast({
+      void toast({
         title: "Success",
         description: "Team created successfully",
       });
@@ -64,9 +62,51 @@ export function Teams() {
       setShowAddDialog(false);
     },
     onError: (error) => {
-      toast({
+      void toast({
         title: "Error",
         description: error.message || "Failed to create team",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+
+  const addTeamMemberMutation = useMutation({
+    mutationFn: async (data: { teamId: number; userId: string }) => {
+      return await apiRequest("POST", `/api/teams/${data.teamId}/members`, { userId: data.userId });
+    },
+    onSuccess: () => {
+      void toast({
+        title: "Success",
+        description: "Team member added successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
+    },
+    onError: (error: Error) => {
+      void toast({
+        title: "Error",
+        description: error.message || "Failed to add team member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeTeamMemberMutation = useMutation({
+    mutationFn: async (data: { teamId: number; userId: string }) => {
+      return await apiRequest("DELETE", `/api/teams/${data.teamId}/members/${data.userId}`);
+    },
+    onSuccess: () => {
+      void toast({
+        title: "Success",
+        description: "Team member removed successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
+    },
+    onError: (error: Error) => {
+      void toast({
+        title: "Error",
+        description: error.message || "Failed to remove team member",
         variant: "destructive",
       });
     },
@@ -75,13 +115,13 @@ export function Teams() {
   const requestToJoinMutation = useMutation({
     mutationFn: (teamId: number) => apiRequest("POST", `/api/teams/${teamId}/requests`),
     onSuccess: () => {
-      toast({
+      void toast({
         title: "Request Sent",
         description: "Your request to join the team has been sent.",
       });
     },
     onError: (error: Error) => {
-      toast({
+      void toast({
         title: "Error",
         description: error.message || "Failed to send request.",
         variant: "destructive",
@@ -99,51 +139,11 @@ export function Teams() {
   };
 
   const handleViewTeam = (team: Team) => {
-    toast({
+    void toast({
       title: "Team Details",
       description: `Viewing details for ${team.name}`,
     });
   };
-
-  const addTeamMemberMutation = useMutation({
-    mutationFn: async (data: { teamId: number; userId: string }) => {
-      return await apiRequest("POST", `/api/teams/${data.teamId}/members`, { userId: data.userId });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teams', selectedTeam?.id, 'members'] });
-      toast({
-        title: "Success",
-        description: "Team member added successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add team member",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const removeTeamMemberMutation = useMutation({
-    mutationFn: async (data: { teamId: number; userId: string }) => {
-      return await apiRequest("DELETE", `/api/teams/${data.teamId}/members/${data.userId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teams', selectedTeam?.id, 'members'] });
-      toast({
-        title: "Success",
-        description: "Team member removed successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove team member",
-        variant: "destructive",
-      });
-    },
-  });
 
   if (teamsLoading || sportsLoading || usersLoading) {
     return <div>Loading...</div>;
@@ -274,9 +274,17 @@ export function Teams() {
                         <td className="py-4 px-6">
                           <div className="flex space-x-2">
                             {isCaptain ? (
-                              <Link href={`/dashboard/teams/${team.id}/settings`}>
-                                <Button variant="ghost" size="sm">Manage</Button>
-                              </Link>
+                              <>
+                                <Link href={`/dashboard/teams/${team.id}/settings`}>
+                                  <Button variant="ghost" size="sm">Manage</Button>
+                                </Link>
+                                <Button variant="ghost" size="sm" onClick={() => {
+                                  setSelectedTeam(team);
+                                  setShowRosterDialog(true);
+                                }}>
+                                  Roster
+                                </Button>
+                              </>
                             ) : isMember ? (
                               <Button variant="ghost" size="sm" onClick={() => handleViewTeam(team)}>
                                 View

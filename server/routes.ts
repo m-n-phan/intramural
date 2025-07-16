@@ -14,7 +14,7 @@ interface ClerkWebhookEvent {
     email_addresses?: { id: string; email_address: string }[];
     primary_email_address_id?: string;
   };
-  type: "user.created" | "user.updated" | string;
+  type: string;
 }
 
 interface EmailAddress {
@@ -26,7 +26,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { requireAdmin, requireCaptainOrAdmin, requireRefereeOrAdmin, requireRole } from "./roleAuth";
-import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES, User, Invite } from "@shared/schema";
+import type { User, Invite } from "@shared/schema";
+import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import { Webhook } from "svix";
 
@@ -34,9 +35,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export function registerRoutes(app: Express): Server {
   app.use(ClerkExpressWithAuth());
 
   // Webhook handler for Clerk. "express.raw" middleware is mounted at the app
@@ -87,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { first_name, last_name, email_addresses, primary_email_address_id } = evt.data;
       const email = email_addresses?.find((e: EmailAddress) => e.id === primary_email_address_id)?.email_address;
       await storage.upsertUser({
-        id: id!,
+        id: id,
         firstName: first_name,
         lastName: last_name,
         email: email,
@@ -527,7 +528,7 @@ app.put('/api/teams/:id', requireCaptainOrAdmin, async (req: Request, res: Respo
         return res.status(403).json({ message: "Forbidden: You do not have permission to update this invitation." });
       }
 
-      const invitation = await storage.updateTeamInvitationStatus(inviteId, status, userId);
+      const invitation = await storage.updateTeamInvitationStatus(inviteId, status);
       
       res.json(invitation);
     } catch (error) {

@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, Clock, AlertTriangle, RefreshCw, CreditCard } from "lucide-react";
 import { Link } from "wouter";
-import { Team } from "@shared/schema";
-import { AnalyticsOverview } from "./analytics";
+import type { Team } from "@shared/schema";
+import type { AnalyticsOverview } from "./analytics";
 
 export function Payments() {
   const { data: analytics, isLoading } = useQuery<AnalyticsOverview>({

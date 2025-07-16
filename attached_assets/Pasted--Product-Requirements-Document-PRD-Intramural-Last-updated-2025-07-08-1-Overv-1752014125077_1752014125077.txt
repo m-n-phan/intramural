@@ -1,23 +1,27 @@
+***
+
 # Product Requirements Document (PRD) – **Intramural**
 
-*Last updated: 2025-07-08*
+*Last updated: 2025-07-16*
 
 ---
 
 ## 1. Overview
 
-Intramural is a web **and native mobile** platform that helps colleges and universities plan, run, and analyze intramural sports programs. It replaces spreadsheet-driven workflows and outdated portals with a modern, Notion‑style experience for admins, captains, players, and staff.
+Intramural is a web platform that helps colleges and universities plan, run, and analyze intramural sports programs. It replaces spreadsheet-driven workflows and outdated portals with a modern, Notion‑style experience for admins, captains, players, and staff.
+
+**A native mobile application for iOS and Android is a core part of the product roadmap and is planned for a future release.**
 
 ## 2. Objectives & Success Metrics
 
-| Objective                   | KPI                                        | Target                  |
-| --------------------------- | ------------------------------------------ | ----------------------- |
-| Cut admin scheduling time   | Avg. time to publish full season           | ↓ 50 % vs. current tool |
-| Increase student engagement | Weekly active players / registered players | ≥ 60 %                  |
-| Reduce forfeits             | Forfeited games / total games              | ≤ 5 %                   |
-| Monetize reliably           | Payment success rate                       | ≥ 98 %                  |
-| Delight users               | Net Promoter Score                         | ≥ 50                    |
-| Drive mobile adoption       | Mobile MAU / total MAU                     | ≥ 70 %                  |
+| Objective | KPI | Target |
+| :--- | :--- | :--- |
+| Cut admin scheduling time | Avg. time to publish full season | ↓ 50 % vs. current tool |
+| Increase student engagement | Weekly active players / registered players | ≥ 60 % |
+| Reduce forfeits | Forfeited games / total games | ≤ 5 % |
+| Monetize reliably | Payment success rate | ≥ 98 % |
+| Delight users | Net Promoter Score | ≥ 50 |
+| Drive mobile adoption | Mobile MAU / total MAU | ≥ 70 % |
 
 ## 3. Personas
 
@@ -29,16 +33,16 @@ Intramural is a web **and native mobile** platform that helps colleges and unive
 
 ## 4. Core User Stories
 
-1. *As a Player, I can open the mobile app and see my next game, venue, and live score even with spotty campus Wi‑Fi.*
-2. *As Staff, I can enter live scores from courtside on my phone without losing data if I go offline.*
-3. *As an Admin, I can send push‑notification blasts to all captains about weather delays.*
+1.  *As a Player, I can open the mobile app and see my next game, venue, and live score even with spotty campus Wi‑Fi.*
+2.  *As Staff, I can enter live scores from courtside on my phone without losing data if I go offline.*
+3.  *As an Admin, I can send push‑notification blasts to all captains about weather delays.*
 
 ## 5. Functional Requirements
 
 ### 5.1 Authentication & Profiles
 
-* SSO (Google + campus SAML) and email/password.
-* Universal session across web PWA and native mobile app.
+* SSO (Google + campus SAML) and email/password via Clerk.
+* Universal session across the web PWA and future native mobile app.
 * Profile page with photo, class year, lifetime stats.
 
 ### 5.2 Sports & Seasons
@@ -47,16 +51,16 @@ Intramural is a web **and native mobile** platform that helps colleges and unive
 * Capacity rules: roster size, gender mix, eligibility checks.
 * Auto‑generated public registration links.
 
-### 5.3 Mobile‑Specific
+### 5.3 Mobile‑Specific (Future Phase)
 
-| Feature                | Detail                                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| **Native Apps**        | iOS & Android built with **Expo + React Native**; distributed through App Store & Play Store.  |
-| **Offline Mode**       | Local cache (SQLite/AsyncStorage) for schedules, rosters, score entry; auto‑sync on reconnect. |
-| **Push Notifications** | Expo Notifications / FCM for schedule changes, messages, score updates.                        |
-| **Mobile Navigation**  | Bottom tab bar (Home, Schedule, Teams, Chat, Profile).                                         |
-| **Camera Access**      | Quick photo upload for game results & disputes.                                                |
-| **Deep Links**         | `intramural://game/{id}` opens directly in app.                                                |
+| Feature | Detail |
+| :--- | :--- |
+| **Native Apps** | iOS & Android built with **Expo + React Native**; distributed through App Store & Play Store. |
+| **Offline Mode** | Local cache (SQLite/AsyncStorage) for schedules, rosters, score entry; auto‑sync on reconnect. |
+| **Push Notifications** | Expo Notifications / FCM for schedule changes, messages, score updates. |
+| **Mobile Navigation** | Bottom tab bar (Home, Schedule, Teams, Chat, Profile). |
+| **Camera Access** | Quick photo upload for game results & disputes. |
+| **Deep Links** | `intramural://game/{id}` opens directly in app. |
 
 ### 5.4 Payments & Waivers
 
@@ -76,21 +80,21 @@ Intramural is a web **and native mobile** platform that helps colleges and unive
 
 ### 7.1 Design Pillars
 
-1. **Modern & Sleek** – clean typography (Inter), generous whitespace, 8 px grid rhythm.
-2. **Delightful** – subtle micro‑interactions (200 ms ease‑out), emoji‑grade icons via Lucide, celebratory confetti when seasons end.
-3. **Focus & Clarity** – context‑aware sidebars, progressive disclosure; "one primary action" per screen.
-4. **Consistency** – single source‑of‑truth design tokens shared between web (CSS vars) and mobile (React Native StyleSheet).
+1.  **Modern & Sleek** – clean typography (Inter), generous whitespace, 8 px grid rhythm.
+2.  **Delightful** – subtle micro‑interactions (200 ms ease‑out), emoji‑grade icons via Lucide, celebratory confetti when seasons end.
+3.  **Focus & Clarity** – context‑aware sidebars, progressive disclosure; "one primary action" per screen.
+4.  **Consistency** – single source‑of‑truth design tokens shared between web (CSS vars) and mobile (React Native StyleSheet).
 
 ### 7.2 Visual Language
 
-| Token          | Light   | Dark    | Usage               |
-| -------------- | ------- | ------- | ------------------- |
-| `--bg`         | #FFFFFF | #1E1E1E | Page background     |
-| `--surface`    | #F7F7F7 | #2B2B2B | Cards, nav bars     |
-| `--accent`     | #2F69FF | #3B83FF | Primary CTAs, links |
-| `--border`     | #E0E0E0 | #3C3C3C | Dividers, inputs    |
-| `--text`       | #37352F | #E6E6E6 | Primary copy        |
-| `--text‑muted` | #787774 | #A0A0A0 | Secondary copy      |
+| Token | Light | Dark | Usage |
+| :--- | :--- | :--- | :--- |
+| `--bg` | #FFFFFF | #1E1E1E | Page background |
+| `--surface` | #F7F7F7 | #2B2B2B | Cards, nav bars |
+| `--accent` | #2F69FF | #3B83FF | Primary CTAs, links |
+| `--border` | #E0E0E0 | #3C3C3C | Dividers, inputs |
+| `--text` | #37352F | #E6E6E6 | Primary copy |
+| `--text‑muted` | #787774 | #A0A0A0 | Secondary copy |
 
 ### 7.3 Layout Patterns
 
@@ -112,30 +116,30 @@ Intramural is a web **and native mobile** platform that helps colleges and unive
 
 ## 8. Technical Architecture
 
-| Layer             | Tech choice                                          |
-| ----------------- | ---------------------------------------------------- |
-| Frontend – Web    | Next.js 14 (RSC), Tailwind, TanStack Query           |
-| Frontend – Mobile | **Expo SDK 51, React Native 0.73**, `expo‑router`    |
-| Real‑time         | Socket.IO (web) + `@socket.io/react‑native`          |
-| Backend           | NestJS, Prisma ORM, PostgreSQL (PlanetScale)         |
-| Auth              | Next‑Auth + SAML; Expo SecureStore for JWT on mobile |
-| Push              | Expo Notifications → FCM / APNS                      |
-| Files             | AWS S3                                               |
-| Caching / Queues  | Redis                                                |
-| Infrastructure    | Vercel (web) & Railway (API), Terraform IaC          |
-| CI / CD           | GitHub Actions → Vercel & EAS Build / Submit         |
+| Layer | Tech choice |
+| :--- | :--- |
+| Frontend – Web | **Vite, React, Tailwind, TanStack Query** |
+| Frontend – Mobile | **Expo SDK 51, React Native 0.73**, `expo‑router` (Future Phase) |
+| Real‑time | **WebSockets (ws)** |
+| Backend | **Express, Drizzle ORM, PostgreSQL** |
+| Auth | **Clerk** (supports SSO/SAML); **Expo SecureStore** for JWT on mobile (future) |
+| Push | Expo Notifications → FCM / APNS (Future Phase) |
+| Files | AWS S3 |
+| Caching / Queues | Redis |
+| Infrastructure | Vercel (web) & Railway (API), Terraform IaC |
+| CI / CD | GitHub Actions → Deployment service & EAS Build / Submit (future) |
 
 ## 9. Testing Strategy
 
-| Layer             | Tool                         | Coverage Target            |
-| ----------------- | ---------------------------- | -------------------------- |
-| Unit – Web        | Vitest                       | ≥ 80 % lines               |
-| Unit – Mobile     | React Native Testing Library | critical helpers           |
-| Component         | Storybook + Testing Library  | core components            |
-| e2e – Web         | Cypress                      | full season lifecycle      |
-| e2e – Mobile      | Detox & Maestro              | critical flows             |
-| Visual Regression | Chromatic snapshots          | navbar, landing, dashboard |
-| Load & Perf       | k6                           | 10 k RPS                   |
+| Layer | Tool | Coverage Target |
+| :--- | :--- | :--- |
+| Unit – Web | **Vitest** | ≥ 80 % lines |
+| Unit – Mobile | React Native Testing Library | critical helpers |
+| Component | Storybook + Testing Library | core components |
+| e2e – Web | Cypress | full season lifecycle |
+| e2e – Mobile | Detox & Maestro | critical flows |
+| Visual Regression | Chromatic snapshots | navbar, landing, dashboard |
+| Load & Perf | k6 | 10 k RPS |
 
 ---
 

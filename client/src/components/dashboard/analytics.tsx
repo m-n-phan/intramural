@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Users, Trophy, DollarSign, Activity } from "lucide-react";
-import { Sport, Team, Game } from "@shared/schema";
+import type { Sport, Team, Game } from "@shared/schema";
 
 export interface AnalyticsOverview {
   activeTeams: number;

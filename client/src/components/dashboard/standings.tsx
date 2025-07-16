@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy, Award, Medal } from "lucide-react";
-import { Sport, Team } from "@shared/schema";
+import type { Sport, Team } from "@shared/schema";
 
 // Function to determine the current season based on month and year
 const getCurrentSeason = () => {
