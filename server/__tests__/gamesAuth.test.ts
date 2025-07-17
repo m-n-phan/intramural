@@ -1,4 +1,27 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
+
+// This is hoisted and runs before imports, setting the required environment variable.
+vi.hoisted(() => {
+  process.env.DATABASE_URL = 'dummy-db-url-for-testing';
+});
+
+// Mock the postgres library to prevent it from trying to connect to a database.
+vi.mock('postgres', () => {
+    const mClient = {
+        query: vi.fn(),
+        end: vi.fn(),
+    };
+    const mPostgres = vi.fn(() => mClient);
+    return { default: mPostgres };
+});
+
+// Mock drizzle-orm
+vi.mock('drizzle-orm/postgres-js', () => {
+  return {
+    drizzle: vi.fn().mockReturnValue({}), // Return a dummy object
+  };
+});
+
 import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import request from 'supertest';
