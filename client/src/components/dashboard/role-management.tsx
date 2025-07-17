@@ -35,8 +35,8 @@ export function RoleManagement() {
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       await apiRequest('PUT', `/api/users/${userId}/role`, { role });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
         title: "Role Updated",
         description: "User role has been updated successfully.",

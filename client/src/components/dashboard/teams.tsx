@@ -53,16 +53,16 @@ export function Teams() {
     mutationFn: async (data: Omit<Team, 'id'>) => {
       return await apiRequest("POST", "/api/teams", data);
     },
-    onSuccess: () => {
-      void toast({
+    onSuccess: async () => {
+      toast({
         title: "Success",
         description: "Team created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
       setShowAddDialog(false);
     },
     onError: (error) => {
-      void toast({
+      toast({
         title: "Error",
         description: error.message || "Failed to create team",
         variant: "destructive",
@@ -76,15 +76,15 @@ export function Teams() {
     mutationFn: async (data: { teamId: number; userId: string }) => {
       return await apiRequest("POST", `/api/teams/${data.teamId}/members`, { userId: data.userId });
     },
-    onSuccess: () => {
-      void toast({
+    onSuccess: async () => {
+      toast({
         title: "Success",
         description: "Team member added successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
     },
     onError: (error: Error) => {
-      void toast({
+      toast({
         title: "Error",
         description: error.message || "Failed to add team member",
         variant: "destructive",
@@ -96,15 +96,15 @@ export function Teams() {
     mutationFn: async (data: { teamId: number; userId: string }) => {
       return await apiRequest("DELETE", `/api/teams/${data.teamId}/members/${data.userId}`);
     },
-    onSuccess: () => {
-      void toast({
+    onSuccess: async () => {
+      toast({
         title: "Success",
         description: "Team member removed successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/teams', 'members'] });
     },
     onError: (error: Error) => {
-      void toast({
+      toast({
         title: "Error",
         description: error.message || "Failed to remove team member",
         variant: "destructive",
@@ -115,13 +115,13 @@ export function Teams() {
   const requestToJoinMutation = useMutation({
     mutationFn: (teamId: number) => apiRequest("POST", `/api/teams/${teamId}/requests`),
     onSuccess: () => {
-      void toast({
+      toast({
         title: "Request Sent",
         description: "Your request to join the team has been sent.",
       });
     },
     onError: (error: Error) => {
-      void toast({
+      toast({
         title: "Error",
         description: error.message || "Failed to send request.",
         variant: "destructive",
@@ -139,7 +139,7 @@ export function Teams() {
   };
 
   const handleViewTeam = (team: Team) => {
-    void toast({
+    toast({
       title: "Team Details",
       description: `Viewing details for ${team.name}`,
     });

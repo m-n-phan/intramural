@@ -68,12 +68,12 @@ export function Sports() {
     mutationFn: async (data: InsertSport) => {
       return await apiRequest("POST", "/api/sports", data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Sport created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/sports'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/sports'] });
       setShowAddDialog(false);
       form.reset();
     },
@@ -94,7 +94,7 @@ export function Sports() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
@@ -134,7 +134,7 @@ export function Sports() {
               <DialogTitle>Add New Sport</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={(...args) => void form.handleSubmit(onSubmit)(...args)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"

@@ -37,12 +37,12 @@ export function Schedule() {
     mutationFn: async (data: Partial<InsertGame>) => {
       return await apiRequest("POST", "/api/games", data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Game scheduled successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/games'] });
       setShowAddDialog(false);
     },
     onError: (error) => {
@@ -58,12 +58,12 @@ export function Schedule() {
     mutationFn: async (gameId: number) => {
       return await apiRequest("DELETE", `/api/games/${gameId}`);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Game deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/games'] });
     },
     onError: (error) => {
       toast({
@@ -78,12 +78,12 @@ export function Schedule() {
     mutationFn: async (data: { id: number; updates: Partial<InsertGame> }) => {
       return await apiRequest("PUT", `/api/games/${data.id}`, data.updates);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Game updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/games'] });
       setShowEditDialog(false);
       setSelectedGame(null);
     },

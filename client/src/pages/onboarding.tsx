@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -184,7 +184,7 @@ export default function Onboarding() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  Select the sports you're interested in participating in:
+                  Select the sports you&apos;re interested in participating in:
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {Array.isArray(sports) && (sports as Sport[]).map((sport) => (

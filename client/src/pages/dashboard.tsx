@@ -38,8 +38,8 @@ function Notifications() {
   const mutation = useMutation({
     mutationFn: ({ inviteId, status }: { inviteId: number, status: 'accepted' | 'declined' }) =>
       apiRequest("PUT", `/api/invites/${inviteId}`, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me/invites'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/users/me/invites'] });
       toast({ title: "Success", description: "Invitation updated." });
     },
     onError: (error: Error) => {

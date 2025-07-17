@@ -33,7 +33,7 @@ export function Analytics() {
       <div className="space-y-6">
         <div className="h-8 bg-muted rounded w-1/4 mb-4" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
                 <div className="h-6 bg-muted rounded w-1/2" />

@@ -11,7 +11,7 @@ import { Link } from "wouter";
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY as string);
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -57,7 +57,7 @@ const CheckoutForm = () => {
         <CardTitle>Complete Payment</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <PaymentElement />
           <Button 
             type="submit" 
@@ -80,7 +80,7 @@ export default function Checkout() {
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
     apiRequest("POST", "/api/create-payment-intent", { amount })
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<{ clientSecret: string }>)
       .then((data) => {
         setClientSecret(data.clientSecret);
       })

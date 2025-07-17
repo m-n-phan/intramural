@@ -12,7 +12,7 @@ async function fetchUser() {
     }
     throw new Error(`Failed to fetch user: ${response.statusText}`);
   }
-  return response.json();
+  return response.json() as Promise<User | null>;
 }
 
 export const useAuth = () => {
