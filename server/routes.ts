@@ -38,11 +38,13 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export function registerRoutes(app: Express): Server {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   app.use(ClerkExpressWithAuth());
 
   // Webhook handler for Clerk. "express.raw" middleware is mounted at the app
   // level so the request body arrives as a Buffer here for signature
   // verification.
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   app.post('/api/webhooks/clerk', async (req, res) => {
     try {
       const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -122,17 +124,14 @@ export function registerRoutes(app: Express): Server {
           availability: string;
           notifications: boolean;
         };
-        
-        // Update user with onboarding completion
-        await storage.updateUser(userId, {
+        const updatedUser = await storage.updateUser(userId, {
           onboardingCompleted: true,
           interests: onboardingData.interests,
           experience: onboardingData.experience,
           availability: onboardingData.availability,
           notifications: onboardingData.notifications
         });
-        
-        res.json({ success: true, message: "Onboarding completed successfully" });
+        res.json(updatedUser);
       } catch (error) {
         console.error("Error completing onboarding:", error);
         res.status(500).json({ message: "Failed to complete onboarding" });
@@ -856,6 +855,7 @@ app.put('/api/teams/:id', requireCaptainOrAdmin, (req: Request, res: Response) =
     
     ws.on('message', (message) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         const data = JSON.parse(message.toString()) as { type: string };
         console.warn('Received WebSocket message:', data);
         

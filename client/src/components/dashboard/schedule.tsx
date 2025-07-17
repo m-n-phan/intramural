@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Plus, Calendar, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -33,9 +32,19 @@ export function Schedule() {
     queryKey: ['/api/sports'],
   });
 
-  const createGameMutation = useMutation({
-    mutationFn: async (data: Partial<InsertGame>) => {
-      return await apiRequest("POST", "/api/games", data);
+  const createGameMutation = useMutation<Game, Error, Partial<InsertGame>>({
+    mutationFn: async (data) => {
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to schedule game");
+      }
+      return response.json() as Promise<Game>;
     },
     onSuccess: async () => {
       toast({
@@ -54,9 +63,14 @@ export function Schedule() {
     },
   });
 
-  const deleteGameMutation = useMutation({
-    mutationFn: async (gameId: number) => {
-      return await apiRequest("DELETE", `/api/games/${gameId}`);
+  const deleteGameMutation = useMutation<void, Error, number>({
+    mutationFn: async (gameId) => {
+      const response = await fetch(`/api/games/${gameId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete game");
+      }
     },
     onSuccess: async () => {
       toast({
@@ -74,9 +88,19 @@ export function Schedule() {
     },
   });
 
-  const updateGameMutation = useMutation({
-    mutationFn: async (data: { id: number; updates: Partial<InsertGame> }) => {
-      return await apiRequest("PUT", `/api/games/${data.id}`, data.updates);
+  const updateGameMutation = useMutation<Game, Error, { id: number; updates: Partial<InsertGame> }>({
+    mutationFn: async (data) => {
+      const response = await fetch(`/api/games/${data.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data.updates),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update game");
+      }
+      return response.json() as Promise<Game>;
     },
     onSuccess: async () => {
       toast({

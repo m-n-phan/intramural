@@ -6,7 +6,7 @@ import pluginReactHooks from "eslint-plugin-react-hooks";
 
 export default [
   {
-    ignores: ["dist/", "node_modules/", "client/dist/", "eslint.config.js"],
+    ignores: ["dist/", "node_modules/", "client/dist/", "eslint.config.js", "drizzle.config.ts"],
   },
   {
     languageOptions: {
@@ -59,6 +59,7 @@ export default [
       "no-param-reassign": ["error", { props: false }],
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-magic-numbers": "off",
+      "no-misused-promises": "off"
     }
   }
 ];

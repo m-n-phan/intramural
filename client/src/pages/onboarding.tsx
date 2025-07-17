@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,7 @@ import {
   Zap
 } from "lucide-react";
 import { useLocation } from "wouter";
-import type { Sport } from "@shared/schema";
+import type { Sport, User } from "@shared/schema";
 
 interface OnboardingData {
   interests: string[];
@@ -42,13 +41,23 @@ export default function Onboarding() {
     notifications: true
   });
 
-  const { data: sports } = useQuery({
+  const { data: sports } = useQuery<Sport[]>({
     queryKey: ['/api/sports'],
   });
 
-  const completeOnboardingMutation = useMutation({
-    mutationFn: async (data: OnboardingData) => {
-      return await apiRequest("POST", "/api/onboarding/complete", data);
+  const completeOnboardingMutation = useMutation<User, Error, OnboardingData>({
+    mutationFn: async (data) => {
+      const response = await fetch("/api/onboarding/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to complete onboarding");
+      }
+      return response.json() as Promise<User>;
     },
     onSuccess: () => {
       toast({
@@ -187,7 +196,7 @@ export default function Onboarding() {
                   Select the sports you&apos;re interested in participating in:
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {Array.isArray(sports) && (sports as Sport[]).map((sport) => (
+                  {Array.isArray(sports) && (sports).map((sport) => (
                     <div key={sport.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`sport-${sport.id}`}

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // This is hoisted and runs before imports, setting the required environment variable.
 vi.hoisted(() => {
   process.env.DATABASE_URL = 'dummy-db-url-for-testing';
+  process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
 });
 
 // Mock the postgres library to prevent it from trying to connect to a database.

@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Plus, Users, Search, MoreVertical } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -49,9 +48,19 @@ export function Teams() {
     });
   }, [teams, searchTerm, selectedSport]);
 
-  const createTeamMutation = useMutation({
+  const createTeamMutation = useMutation<Team, Error, Omit<Team, 'id'>>({
     mutationFn: async (data: Omit<Team, 'id'>) => {
-      return await apiRequest("POST", "/api/teams", data);
+      const response = await fetch("/api/teams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create team");
+      }
+      return response.json() as Promise<Team>;
     },
     onSuccess: async () => {
       toast({
@@ -72,9 +81,19 @@ export function Teams() {
 
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
-  const addTeamMemberMutation = useMutation({
+  const addTeamMemberMutation = useMutation<TeamMember, Error, { teamId: number; userId: string }>({
     mutationFn: async (data: { teamId: number; userId: string }) => {
-      return await apiRequest("POST", `/api/teams/${data.teamId}/members`, { userId: data.userId });
+      const response = await fetch(`/api/teams/${data.teamId}/members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: data.userId }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add team member");
+      }
+      return response.json() as Promise<TeamMember>;
     },
     onSuccess: async () => {
       toast({
@@ -94,7 +113,12 @@ export function Teams() {
 
   const removeTeamMemberMutation = useMutation({
     mutationFn: async (data: { teamId: number; userId: string }) => {
-      return await apiRequest("DELETE", `/api/teams/${data.teamId}/members/${data.userId}`);
+      const response = await fetch(`/api/teams/${data.teamId}/members/${data.userId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to remove team member");
+      }
     },
     onSuccess: async () => {
       toast({
@@ -113,7 +137,14 @@ export function Teams() {
   });
   
   const requestToJoinMutation = useMutation({
-    mutationFn: (teamId: number) => apiRequest("POST", `/api/teams/${teamId}/requests`),
+    mutationFn: async (teamId: number) => {
+      const response = await fetch(`/api/teams/${teamId}/requests`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to send request.");
+      }
+    },
     onSuccess: () => {
       toast({
         title: "Request Sent",

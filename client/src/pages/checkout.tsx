@@ -1,7 +1,6 @@
 import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,12 +78,23 @@ export default function Checkout() {
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    apiRequest("POST", "/api/create-payment-intent", { amount })
-      .then((res) => res.json() as Promise<{ clientSecret: string }>)
+    fetch("/api/create-payment-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to create payment intent");
+        }
+        return res.json() as Promise<{ clientSecret: string }>;
+      })
       .then((data) => {
         setClientSecret(data.clientSecret);
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         console.error("Error creating payment intent:", error);
         toast({
           title: "Error",

@@ -1,15 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import type { User, UserRole } from '@shared/schema';
 import { USER_ROLES } from '@shared/schema';
 
 async function fetchUser() {
-  const response = await apiRequest("GET", "/api/auth/user");
+  const response = await fetch("/api/auth/user", { credentials: "include" });
+  if (response.status === 401) {
+    return null;
+  }
   if (!response.ok) {
-    if (response.status === 401) {
-      // Don't throw for 401, it just means the user is not logged in.
-      return null;
-    }
     throw new Error(`Failed to fetch user: ${response.statusText}`);
   }
   return response.json() as Promise<User | null>;

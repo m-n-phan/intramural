@@ -43,8 +43,8 @@ export function Standings() {
         // Sort by points first, then by wins, then by win percentage
         if ((b.points ?? 0) !== (a.points ?? 0)) return (b.points ?? 0) - (a.points ?? 0);
         if ((b.wins ?? 0) !== (a.wins ?? 0)) return (b.wins ?? 0) - (a.wins ?? 0);
-        const aWinPct = (a.wins ?? 0) / ((a.wins ?? 0) + (a.losses ?? 0) || 1);
-        const bWinPct = (b.wins ?? 0) / ((b.wins ?? 0) + (b.losses ?? 0) || 1);
+        const aWinPct = getWinPercentage(a.wins ?? 0, a.losses ?? 0);
+        const bWinPct = getWinPercentage(b.wins ?? 0, b.losses ?? 0);
         return bWinPct - aWinPct;
       }) || [];
   };

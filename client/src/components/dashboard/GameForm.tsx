@@ -35,6 +35,8 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
     },
   });
 
+  const { getValues, setValue } = form;
+
   const watchedSportId = form.watch("sportId");
   const watchedGender = form.watch("gender");
   const watchedHomeTeamId = form.watch("homeTeamId");
@@ -58,13 +60,13 @@ export function GameForm({ onSubmit, isPending, sports, teams, initialValues, on
   }, [eligibleTeams, watchedHomeTeamId, selectedDivision]);
 
   useEffect(() => {
-    if (watchedHomeTeamId && form.getValues("awayTeamId")) {
-      const awayTeam = teams?.find((team) => team.id === form.getValues("awayTeamId"));
+    if (watchedHomeTeamId && getValues("awayTeamId")) {
+      const awayTeam = teams?.find((team) => team.id === getValues("awayTeamId"));
       if (awayTeam && (awayTeam.division !== selectedDivision || awayTeam.gender !== watchedGender)) {
-        form.setValue("awayTeamId", 0);
+        setValue("awayTeamId", 0);
       }
     }
-  }, [watchedHomeTeamId, watchedGender, selectedDivision, teams, form]);
+  }, [watchedHomeTeamId, watchedGender, selectedDivision, teams, getValues, setValue]);
 
   return (
     <Form {...form}>

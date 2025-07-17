@@ -5,7 +5,6 @@ import { UserButton } from "@clerk/clerk-react";
 import { Bell } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import type { Invite } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -36,8 +35,18 @@ function Notifications() {
   });
 
   const mutation = useMutation({
-    mutationFn: ({ inviteId, status }: { inviteId: number, status: 'accepted' | 'declined' }) =>
-      apiRequest("PUT", `/api/invites/${inviteId}`, { status }),
+    mutationFn: async ({ inviteId, status }: { inviteId: number, status: 'accepted' | 'declined' }) => {
+      const response = await fetch(`/api/invites/${inviteId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update invitation");
+      }
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/api/users/me/invites'] });
       toast({ title: "Success", description: "Invitation updated." });

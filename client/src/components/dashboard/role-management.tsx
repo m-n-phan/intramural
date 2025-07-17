@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,17 +23,30 @@ export function RoleManagement() {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users');
-      return Array.isArray(response) ? response : [];
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const data = await response.json() as { users: User[] };
+      return data.users || [];
     },
   });
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      await apiRequest('PUT', `/api/users/${userId}/role`, { role });
+      const response = await fetch(`/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update user role');
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/api/users'] });

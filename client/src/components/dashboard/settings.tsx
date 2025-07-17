@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,7 +46,16 @@ export function Settings() {
 
   const updateAccountMutation = useMutation({
     mutationFn: async (data: { firstName: string; lastName: string; email: string }) => {
-      await apiRequest('PUT', '/api/users/me', data);
+      const response = await fetch('/api/users/me', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
     },
     onSuccess: () => {
       toast({
