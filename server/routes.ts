@@ -845,6 +845,57 @@ app.put('/api/teams/:id', requireCaptainOrAdmin, (req: Request, res: Response) =
     })();
   });
 
+  // Free agent routes
+  app.get('/api/sports/:sportId/free-agents', requireCaptainOrAdmin, (req, res) => {
+    void (async () => {
+      try {
+        const sportId = parseInt(req.params.sportId);
+        const freeAgentsList = await storage.getFreeAgentsBySport(sportId);
+        res.json(freeAgentsList);
+      } catch (error) {
+        console.error("Error fetching free agents:", error);
+        res.status(500).json({ message: "Failed to fetch free agents" });
+      }
+    })();
+  });
+
+  app.post('/api/sports/:sportId/free-agents', (req, res) => {
+    const authReq = req as RequestWithAuth;
+    void (async () => {
+      try {
+        const userId = authReq.auth.userId;
+        const sportId = parseInt(req.params.sportId);
+        const { notes } = req.body as { notes?: string };
+        
+        const isAlreadyOnTeam = await storage.isUserOnTeamForSport(userId, sportId);
+        if (isAlreadyOnTeam) {
+            return res.status(409).json({ message: "You are already on a team for this sport." });
+        }
+
+        await storage.createFreeAgent({ userId, sportId, notes });
+        res.status(201).json({ message: "Successfully registered as a free agent." });
+      } catch (error) {
+        console.error("Error creating free agent entry:", error);
+        res.status(500).json({ message: "Failed to register as a free agent" });
+      }
+    })();
+  });
+
+  app.delete('/api/sports/:sportId/free-agents', (req, res) => {
+    const authReq = req as RequestWithAuth;
+    void (async () => {
+        try {
+            const userId = authReq.auth.userId;
+            const sportId = parseInt(req.params.sportId);
+            await storage.deleteFreeAgent(userId, sportId);
+            res.status(200).json({ message: "Successfully removed from free agency." });
+        } catch (error) {
+            console.error("Error deleting free agent entry:", error);
+            res.status(500).json({ message: "Failed to remove from free agency" });
+        }
+    })();
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket server for real-time updates

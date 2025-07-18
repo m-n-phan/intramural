@@ -5,8 +5,9 @@ import { Schedule } from "./schedule";
 import { Standings } from "./standings";
 import { Settings } from "./settings";
 import { MobileNav } from "./mobile-nav";
+import FreeAgents from "./FreeAgents";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings' | 'freeagents';
 
 export default function PlayerDashboard() {
     const [activeView, setActiveView] = useState<DashboardView>('teams');
@@ -17,6 +18,7 @@ export default function PlayerDashboard() {
             case 'schedule': return <Schedule />;
             case 'standings': return <Standings />;
             case 'settings': return <Settings />;
+            case 'freeagents': return <FreeAgents sportId={0} />;
             default: return <Teams />;
         }
     };

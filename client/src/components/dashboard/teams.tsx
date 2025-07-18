@@ -6,7 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users, Search, MoreVertical } from "lucide-react";
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Team, Sport, User, TeamMember } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +28,8 @@ export function Teams() {
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showRosterDialog, setShowRosterDialog] = useState(false);
+  const [showFreeAgentDialog, setShowFreeAgentDialog] = useState(false);
+  const [freeAgentNotes, setFreeAgentNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("all");
 
@@ -48,7 +58,15 @@ export function Teams() {
     });
   }, [teams, searchTerm, selectedSport]);
 
-  const createTeamMutation = useMutation<Team, Error, Omit<Team, 'id'>>({
+  const userTeamsForSport = useMemo(() => {
+    if (!teams || !teamMembers || !typedUser) return [];
+    const memberOfTeamIds = teamMembers.filter(m => m.userId === typedUser.id).map(m => m.teamId);
+    return teams.filter(t => memberOfTeamIds.includes(t.id) && t.sportId.toString() === selectedSport);
+  }, [teams, teamMembers, typedUser, selectedSport]);
+
+  const isUserOnTeamForSelectedSport = userTeamsForSport.length > 0;
+
+const createTeamMutation = useMutation<Team, Error, Omit<Team, 'id'>>({
     mutationFn: async (data: Omit<Team, 'id'>) => {
       const response = await fetch("/api/teams", {
         method: "POST",
@@ -60,7 +78,7 @@ export function Teams() {
       if (!response.ok) {
         throw new Error("Failed to create team");
       }
-      return response.json() as Promise<Team>;
+      return await response.json() as Team;
     },
     onSuccess: async () => {
       toast({
@@ -74,6 +92,35 @@ export function Teams() {
       toast({
         title: "Error",
         description: error.message || "Failed to create team",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createFreeAgentMutation = useMutation<void, Error, { sportId: number; notes?: string }>({
+    mutationFn: async (data) => {
+      const response = await fetch(`/api/sports/${data.sportId}/free-agents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: data.notes }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json() as { message?: string };
+        throw new Error(errorData.message || "Failed to become a free agent.");
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "You are now listed as a free agent for this sport.",
+      });
+      setShowFreeAgentDialog(false);
+      setFreeAgentNotes("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -93,7 +140,7 @@ export function Teams() {
       if (!response.ok) {
         throw new Error("Failed to add team member");
       }
-      return response.json() as Promise<TeamMember>;
+      return await response.json() as TeamMember;
     },
     onSuccess: async () => {
       toast({
@@ -187,24 +234,56 @@ export function Teams() {
           <h2 className="text-2xl font-bold text-foreground mb-2">Teams</h2>
           <p className="text-muted-foreground">Manage team registrations and rosters</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Add Team</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Team</DialogTitle>
-              <DialogDescription>Create a new team by providing team details and selecting a sport.</DialogDescription>
-            </DialogHeader>
-            <TeamForm 
-              onSubmit={onSubmit}
-              isPending={createTeamMutation.isPending}
-              sports={sports}
-              onCancel={() => setShowAddDialog(false)}
-              submitButtonText="Create Team"
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog open={showFreeAgentDialog} onOpenChange={setShowFreeAgentDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={selectedSport === 'all' || isUserOnTeamForSelectedSport}>
+                <Plus className="h-4 w-4 mr-2" />
+                Become a Free Agent
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Become a Free Agent</DialogTitle>
+                <DialogDescription>
+                  Add yourself to the free agent pool for {sports?.find(s => s.id.toString() === selectedSport)?.name}. 
+                  Team captains can then invite you to join their team.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea 
+                  placeholder="Add optional notes about your skills, availability, etc."
+                  value={freeAgentNotes}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFreeAgentNotes(e.target.value)}
+                />
+                <Button 
+                  onClick={() => createFreeAgentMutation.mutate({ sportId: parseInt(selectedSport), notes: freeAgentNotes })}
+                  disabled={createFreeAgentMutation.isPending}
+                >
+                  {createFreeAgentMutation.isPending ? "Submitting..." : "Confirm Free Agency"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Add Team</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Team</DialogTitle>
+                <DialogDescription>Create a new team by providing team details and selecting a sport.</DialogDescription>
+              </DialogHeader>
+              <TeamForm 
+                onSubmit={onSubmit}
+                isPending={createTeamMutation.isPending}
+                sports={sports}
+                onCancel={() => setShowAddDialog(false)}
+                submitButtonText="Create Team"
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>

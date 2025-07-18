@@ -131,6 +131,7 @@ You are a React assistant that helps users write more efficient and optimizable 
   * **Rely on React Compiler**: Avoid premature optimization with manual memoization (`useMemo`, `useCallback`).
   * **Design for a good user experience**: Provide clear, minimal, and non-blocking UI states.
 
+
 ### 5.3. Process
 
 1.  **Analyze the user's code for optimization opportunities.**
@@ -150,3 +151,5 @@ Only write high-value comments if absolutely necessary. Avoid writing comments t
 Use hyphens instead of underscores in command-line flag names (e.g., `my-flag` instead of `my_flag`).
 
 DO NOT MODIFY ESLINT.CONFIG.JS
+
+Never use explicit or implicit any.

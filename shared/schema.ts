@@ -109,15 +109,37 @@ export const games = pgTable("games", {
  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const freeAgents = pgTable("free_agents", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  sportId: integer("sport_id").references(() => sports.id, { onDelete: 'cascade' }).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
  captainedTeams: many(teams, { relationName: "captain" }),
  teamMemberships: many(teamMembers),
  teamInvitations: many(teamInvitations),
+ freeAgencies: many(freeAgents),
 }));
 
 export const sportsRelations = relations(sports, ({ many }) => ({
  teams: many(teams),
  games: many(games),
+ freeAgents: many(freeAgents),
+}));
+
+export const freeAgentsRelations = relations(freeAgents, ({ one }) => ({
+  user: one(users, {
+    fields: [freeAgents.userId],
+    references: [users.id],
+  }),
+  sport: one(sports, {
+    fields: [freeAgents.sportId],
+    references: [sports.id],
+  }),
 }));
 
 export const teamsRelations = relations(teams, ({ one, many }) => ({

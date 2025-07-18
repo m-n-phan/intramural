@@ -9,11 +9,12 @@ import {
   CreditCard, 
   TrendingUp,
   Shield,
-  Settings
+  Settings,
+  UserPlus
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings' | 'freeagents';
 
 interface SidebarProps {
   activeView: string;
@@ -30,6 +31,7 @@ export function Sidebar({ activeView, setActiveView }: SidebarProps) {
     { id: 'payments', label: 'Payments', icon: CreditCard, adminOnly: true },
     { id: 'roles', label: 'Role Management', icon: Shield, adminOnly: true },
     { id: 'teams', label: 'Teams', icon: Users, adminOnly: false },
+    { id: 'freeagents', label: 'Free Agents', icon: UserPlus, adminOnly: false },
     { id: 'schedule', label: 'Schedule', icon: Calendar, adminOnly: false },
     { id: 'standings', label: 'Standings', icon: Award, adminOnly: false },
     { id: 'settings', label: 'Settings', icon: Settings, adminOnly: false },

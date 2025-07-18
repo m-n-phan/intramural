@@ -1,0 +1,15 @@
+1: Free Agency: A very common scenario is a student who wants to play but doesn't have a team. The PRD does not include a "Free Agent" system where a player can sign up and be discovered by captains looking to fill their rosters.
+
+2: Team Communication: The PRD's mobile spec mentions a "Chat" tab, but there is no communication feature specified or implemented for the web application. Teams need a simple way to communicate—a team message board, for example—for a captain to announce practice times or coordinate for a game.
+
+3: Waiver Management: This is a critical legal and liability feature mentioned in the PRD ("PDF waiver e-sign and S3 storage") but is completely missing from the codebase. There is no UI for uploading a waiver, no process for a user to sign it, and no backend logic to track who has or hasn't signed.
+
+4: Automatic Schedule Generation: The PRD's goal is to "Cut admin scheduling time ↓ 50%". The current implementation requires an admin to create every single game manually using a form. A key feature for any league software is the ability to automatically generate a full round-robin or tournament schedule for a division once all teams have registered.
+
+5: Playoffs and Brackets: The current schema and UI only account for a regular season with wins and losses. There is no concept of a postseason, playoff qualification, or a visual tournament bracket where winners advance.
+
+6: Forfeit & Reschedule Workflow: Your KPI is to "Reduce forfeits ≤ 5%". To achieve this, you need a system for it. There is currently no way for a team captain to declare a forfeit or request a game to be rescheduled, nor a workflow for an admin to approve these actions and update the schedule accordingly.
+
+7: Referee/Staff Assignment: The "Referee / Staff" persona is defined, but there is no mechanism for an admin to assign specific referees to specific games. The schedule view doesn't show who is officiating.
+
+8: Detailed Reporting & Data Export: While there is a basic analytics dashboard, a real-world admin would need more powerful reporting tools. This includes the ability to view, filter, and export data to CSV, such as:

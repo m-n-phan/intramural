@@ -5,8 +5,9 @@ import { Analytics } from "./analytics";
 import { Payments } from "./payments";
 import { RoleManagement } from "./role-management";
 import { Sports } from "./sports";
+import FreeAgents from "./FreeAgents";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings' | 'freeagents';
 
 export default function AdminDashboard() {
     const [activeView, setActiveView] = useState<DashboardView>('overview');
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
             case 'analytics': return <Analytics />;
             case 'payments': return <Payments />;
             case 'roles': return <RoleManagement />;
+            case 'freeagents': return <FreeAgents sportId={0} />;
             default: return <Overview />;
         }
     };

@@ -1,7 +1,7 @@
 {
   "include": [
-    "client/src/**/*", 
-    "shared/**/*", 
+    "client/src/**/*",
+    "shared/**/*",
     "server/**/*",
     "drizzle.config.ts",
     "eslint.config.js",
@@ -22,7 +22,7 @@
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "vitest/globals"],
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]

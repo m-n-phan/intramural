@@ -4,10 +4,11 @@ import {
   Calendar, 
   Users, 
   Award, 
-  User 
+  User,
+  UserPlus
 } from "lucide-react";
 
-type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings';
+type DashboardView = 'overview' | 'sports' | 'teams' | 'schedule' | 'standings' | 'payments' | 'analytics' | 'roles' | 'settings' | 'freeagents';
 
 interface MobileNavProps {
   activeView: DashboardView;
@@ -20,7 +21,8 @@ export function MobileNav({ activeView, setActiveView }: MobileNavProps) {
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'standings', label: 'Standings', icon: Award },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'freeagents', label: 'Free Agents', icon: UserPlus },
+    { id: 'settings', label: 'Profile', icon: User },
   ];
 
   return (

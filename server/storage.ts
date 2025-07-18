@@ -5,6 +5,7 @@ import {
   teamMembers,
   teamInvitations,
   games,
+  freeAgents,
   type User,
   type UpsertUser,
   type Sport,
@@ -19,7 +20,7 @@ import {
   type Invite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, sql, count } from "drizzle-orm";
+import { eq, desc, asc, and, sql, count, inArray } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -73,6 +74,12 @@ export interface IStorage {
   getTeamStats(): Promise<{ totalTeams: number }>;
   getParticipationStats(): Promise<{ totalPlayers: number }>;
   getRevenueStats(): Promise<{ totalRevenue: string; paidTeams: number; pendingRevenue: string }>;
+
+  // Free agent operations
+  getFreeAgentsBySport(sportId: number): Promise<(User & { notes: string | null; freeAgentId: number; })[]>;
+  createFreeAgent(data: { userId: string; sportId: number; notes?: string }): Promise<void>;
+  deleteFreeAgent(userId: string, sportId: number): Promise<void>;
+  isUserOnTeamForSport(userId: string, sportId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -382,6 +389,57 @@ export class DatabaseStorage implements IStorage {
       .from(teams)
       .leftJoin(sports, eq(teams.sportId, sports.id));
     return result;
+  }
+
+  // Free agent operations
+  async getFreeAgentsBySport(sportId: number): Promise<(User & { notes: string | null; freeAgentId: number; })[]> {
+    const results = await db
+      .select({
+        user: users,
+        notes: freeAgents.notes,
+        freeAgentId: freeAgents.id,
+      })
+      .from(freeAgents)
+      .innerJoin(users, eq(freeAgents.userId, users.id))
+      .where(eq(freeAgents.sportId, sportId));
+    
+    return results.map(r => ({ ...r.user, notes: r.notes, freeAgentId: r.freeAgentId }));
+  }
+
+  async createFreeAgent(data: { userId: string; sportId: number; notes?: string }): Promise<void> {
+    await db.insert(freeAgents).values({
+      userId: data.userId,
+      sportId: data.sportId,
+      notes: data.notes,
+    });
+  }
+
+  async deleteFreeAgent(userId: string, sportId: number): Promise<void> {
+    await db.delete(freeAgents)
+      .where(and(
+        eq(freeAgents.userId, userId),
+        eq(freeAgents.sportId, sportId)
+      ));
+  }
+
+  async isUserOnTeamForSport(userId: string, sportId: number): Promise<boolean> {
+    const userTeams = await db.select({ teamId: teamMembers.teamId })
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId));
+
+    if (userTeams.length === 0) {
+      return false;
+    }
+
+    const teamIds = userTeams.map(t => t.teamId);
+    const teamsInSport = await db.select({ id: teams.id })
+      .from(teams)
+      .where(and(
+        eq(teams.sportId, sportId),
+        inArray(teams.id, teamIds)
+      ));
+
+    return teamsInSport.length > 0;
   }
 }
 
