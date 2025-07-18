@@ -82,6 +82,7 @@
     "recharts": "^2.15.2",
     "repomix": "^1.1.0",
     "stripe": "^18.3.0",
+    "supabase": "^2.31.4",
     "svix": "^1.69.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

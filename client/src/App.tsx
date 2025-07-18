@@ -9,7 +9,12 @@ import Dashboard from "@/pages/dashboard";
 import Checkout from "@/pages/checkout";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
-import { ClerkProvider, SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  useUser,
+} from "@clerk/clerk-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 
@@ -74,7 +79,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignInUrl="/dashboard" afterSignUpUrl="/onboarding">
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/onboarding"
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <TooltipProvider>
