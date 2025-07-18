@@ -15,7 +15,8 @@
     "test": "vitest run",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "preflight": "npm run check && npm run test && npm run lint:fix"
+    "preflight": "npm run check && npm run test && npm run lint:fix",
+    "ngrok": "ngrok http --url=real-cricket-cosmic.ngrok-free.app 80"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.33.0",
