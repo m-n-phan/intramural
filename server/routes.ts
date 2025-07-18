@@ -30,6 +30,8 @@ import type { User, Invite, UserRole } from "@shared/schema";
 import { insertSportSchema, insertTeamSchema, insertGameSchema, USER_ROLES } from "@shared/schema";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import { Webhook } from "svix";
+import { generateRoundRobinSchedule } from "./scheduleGenerator.js";
+import { addDays, parseISO } from "date-fns";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -338,8 +340,6 @@ interface RequestWithAuthAndUser extends Request {
   auth: { userId: string; };
   currentUser: User; // Assuming requireRole attaches the user
 }
-
-// ...
 
 app.put('/api/teams/:id', requireCaptainOrAdmin, (req: Request, res: Response) => {
     const authReq = req as RequestWithAuthAndUser;
@@ -721,6 +721,54 @@ app.put('/api/teams/:id', requireCaptainOrAdmin, (req: Request, res: Response) =
       } catch (error) {
         console.error("Error creating game:", error);
         res.status(500).json({ message: "Failed to create game" });
+      }
+    })();
+  });
+
+  app.post('/api/schedules/generate', requireRefereeOrAdmin, (req, res) => {
+    void (async () => {
+      try {
+        const { sportId, division, startDate, gamesPerWeek, venue } = req.body;
+
+        if (!sportId || !division || !startDate) {
+          return res.status(400).json({ message: "Sport ID, division, and start date are required" });
+        }
+
+        const teamsInDivision = await storage.getTeams({ sportId, division });
+
+        if (teamsInDivision.length < 2) {
+          return res.status(400).json({ message: "Not enough teams in the division to generate a schedule" });
+        }
+
+        const matchups = generateRoundRobinSchedule(teamsInDivision);
+        
+        let gameDate = parseISO(startDate);
+        const gamesToCreate = [];
+        
+        for (let i = 0; i < matchups.length; i++) {
+          const matchup = matchups[i];
+          
+          if (i > 0 && i % Math.floor(gamesPerWeek) === 0) {
+            gameDate = addDays(gameDate, 7);
+          }
+
+          gamesToCreate.push({
+            sportId: sportId,
+            homeTeamId: matchup.homeTeam.id,
+            awayTeamId: matchup.awayTeam.id,
+            gender: teamsInDivision[0].gender,
+            scheduledAt: gameDate,
+            venue: venue || "TBD",
+            status: "scheduled",
+          });
+        }
+
+        const games = await storage.createGames(gamesToCreate);
+        res.status(201).json({ message: `${games.length} games have been scheduled successfully.`, games });
+
+      } catch (error) {
+        console.error("Error generating schedule:", error);
+        res.status(500).json({ message: "Failed to generate schedule" });
       }
     })();
   });
