@@ -1,4 +1,4 @@
-1: Free Agency: A very common scenario is a student who wants to play but doesn't have a team. The PRD does not include a "Free Agent" system where a player can sign up and be discovered by captains looking to fill their rosters.
+DONE 1: Free Agency: A very common scenario is a student who wants to play but doesn't have a team. The PRD does not include a "Free Agent" system where a player can sign up and be discovered by captains looking to fill their rosters.
 
 2: Team Communication: The PRD's mobile spec mentions a "Chat" tab, but there is no communication feature specified or implemented for the web application. Teams need a simple way to communicate—a team message board, for example—for a captain to announce practice times or coordinate for a game.
 
