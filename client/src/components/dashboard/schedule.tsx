@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format, addMonths, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { GameForm } from "./GameForm";
+import { GenerateScheduleForm, type GenerateScheduleFormData } from "./GenerateScheduleForm";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Schedule() {
   const { toast } = useToast();
@@ -19,6 +21,8 @@ export function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 1)); // July 2025
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const { isAdmin } = useAuth();
 
   const { data: games, isLoading } = useQuery<Game[]>({
     queryKey: ['/api/games'],
@@ -120,6 +124,38 @@ export function Schedule() {
     },
   });
 
+  const generateScheduleMutation = useMutation<any, Error, GenerateScheduleFormData>({
+    mutationFn: async (data) => {
+      const response = await fetch("/api/schedules/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to generate schedule");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/games'] });
+      setShowGenerateDialog(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Generating Schedule",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: Partial<InsertGame>) => {
     if (!data.sportId || data.sportId === 0 || !data.homeTeamId || data.homeTeamId === 0 || !data.awayTeamId || data.awayTeamId === 0) {
       toast({
@@ -135,6 +171,10 @@ export function Schedule() {
   const onEditSubmit = (data: Partial<InsertGame>) => {
     if (!selectedGame) return;
     updateGameMutation.mutate({ id: selectedGame.id, updates: data });
+  };
+
+  const onGenerateSubmit = (data: GenerateScheduleFormData) => {
+    generateScheduleMutation.mutate(data);
   };
 
   const handlePreviousMonth = () => {
@@ -217,43 +257,66 @@ export function Schedule() {
           <h2 className="text-2xl font-bold text-foreground mb-2">Schedule</h2>
           <p className="text-muted-foreground">View and manage game schedules</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Schedule Game</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Schedule New Game</DialogTitle>
-              <DialogDescription>Create a new game by selecting teams, date, and venue.</DialogDescription>
-            </DialogHeader>
-            <GameForm 
-              onSubmit={onSubmit} 
-              isPending={createGameMutation.isPending} 
-              sports={sports} 
-              teams={teams} 
-              onCancel={() => setShowAddDialog(false)}
-              submitButtonText="Schedule Game"
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center space-x-2">
+          {isAdmin && (
+            <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline"><Calendar className="h-4 w-4 mr-2" />Generate Schedule</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Generate New Schedule</DialogTitle>
+                  <DialogDescription>
+                    Automatically create a round-robin schedule for a division.
+                  </DialogDescription>
+                </DialogHeader>
+                <GenerateScheduleForm
+                  sports={sports}
+                  onSubmit={onGenerateSubmit}
+                  onCancel={() => setShowGenerateDialog(false)}
+                  isPending={generateScheduleMutation.isPending}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Schedule Game</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Schedule New Game</DialogTitle>
+                <DialogDescription>Create a new game by selecting teams, date, and venue.</DialogDescription>
+              </DialogHeader>
+              <GameForm 
+                onSubmit={onSubmit} 
+                isPending={createGameMutation.isPending} 
+                sports={sports} 
+                teams={teams} 
+                onCancel={() => setShowAddDialog(false)}
+                submitButtonText="Schedule Game"
+              />
+            </DialogContent>
+          </Dialog>
 
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Game</DialogTitle>
-              <DialogDescription>Update the game details below.</DialogDescription>
-            </DialogHeader>
-            <GameForm 
-              onSubmit={onEditSubmit} 
-              isPending={updateGameMutation.isPending} 
-              sports={sports} 
-              teams={teams} 
-              initialValues={selectedGame ? { ...selectedGame, scheduledAt: new Date(selectedGame.scheduledAt) } : undefined}
-              onCancel={() => setShowEditDialog(false)}
-              submitButtonText="Update Game"
-            />
-          </DialogContent>
-        </Dialog>
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Game</DialogTitle>
+                <DialogDescription>Update the game details below.</DialogDescription>
+              </DialogHeader>
+              <GameForm 
+                onSubmit={onEditSubmit} 
+                isPending={updateGameMutation.isPending} 
+                sports={sports} 
+                teams={teams} 
+                initialValues={selectedGame ? { ...selectedGame, scheduledAt: new Date(selectedGame.scheduledAt) } : undefined}
+                onCancel={() => setShowEditDialog(false)}
+                submitButtonText="Update Game"
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>

@@ -40,7 +40,7 @@ export interface IStorage {
   deleteSport(id: number): Promise<void>;
   
   // Team operations
-  getTeams(options?: { search?: string; sportId?: number }): Promise<Team[]>;
+  getTeams(options?: { search?: string; sportId?: number; division?: string }): Promise<Team[]>;
   getTeamsBySport(sportId: number): Promise<Team[]>;
   getTeam(id: number): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
@@ -67,6 +67,7 @@ export interface IStorage {
   getRecentGames(): Promise<Game[]>;
   getGame(id: number): Promise<Game | undefined>;
   createGame(game: InsertGame): Promise<Game>;
+  createGames(games: InsertGame[]): Promise<Game[]>;
   updateGame(id: number, game: Partial<InsertGame>): Promise<Game>;
   deleteGame(id: number): Promise<void>;
   
@@ -174,14 +175,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Team operations
-  async getTeams(options: { search?: string; sportId?: number } = {}): Promise<Team[]> {
-    const { search, sportId } = options;
+  async getTeams(options: { search?: string; sportId?: number, division?: string } = {}): Promise<Team[]> {
+    const { search, sportId, division } = options;
     const conditions = [];
     if (search) {
       conditions.push(sql`LOWER(${teams.name}) LIKE ${'%' + search.toLowerCase() + '%'}`);
     }
     if (sportId) {
       conditions.push(eq(teams.sportId, sportId));
+    }
+    if (division) {
+      conditions.push(eq(teams.division, division));
     }
 
     const query = db.select().from(teams).orderBy(asc(teams.name));
@@ -345,6 +349,14 @@ export class DatabaseStorage implements IStorage {
   async createGame(game: InsertGame): Promise<Game> {
     const [newGame] = await db.insert(games).values(game).returning();
     return newGame;
+  }
+
+  async createGames(gamesToCreate: InsertGame[]): Promise<Game[]> {
+    if (gamesToCreate.length === 0) {
+      return [];
+    }
+    const newGames = await db.insert(games).values(gamesToCreate).returning();
+    return newGames;
   }
 
   async updateGame(id: number, game: Partial<InsertGame>): Promise<Game> {
